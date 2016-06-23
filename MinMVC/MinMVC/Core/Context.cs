@@ -8,6 +8,7 @@ namespace MinMVC
 		public event Action onCleanUp = delegate { };
 
 		readonly IDictionary<Type, Type> _typeMap = new Dictionary<Type, Type>();
+		readonly IDictionary<Type, bool> _initMap = new Dictionary<Type, bool>();
 		readonly IDictionary<Type, object> _instanceCache = new Dictionary<Type, object>();
 
 		IContext _parent;
@@ -62,6 +63,7 @@ namespace MinMVC
 		{
 			if(!_typeMap.ContainsKey(key)) {
 				_typeMap[key] = value;
+				_initMap [key] = false;
 
 				if(!preventCaching) {
 					Cache(key, default (object));
@@ -88,6 +90,18 @@ namespace MinMVC
 			} else {
 				throw new AlreadyRegisteredException("already cached; " + key);
 			}
+		}
+
+		public void OnInit<T>() where T : class
+		{
+			Type type = typeof(T);
+			_initMap [type] = true;
+			CheckWaiting ();
+		}
+
+		void CheckWaiting ()
+		{
+			
 		}
 
 		public T Get<T>(Type key = null) where T : class
@@ -134,12 +148,9 @@ namespace MinMVC
 		public bool Has(Type key)
 		{
 			bool hasKey = _instanceCache.ContainsKey(key) || _typeMap.ContainsKey(key);
+			bool findInParent = !hasKey && hasParent;
 
-			if(!hasKey && hasParent) {
-				hasKey = _parent.Has(key);
-			}
-
-			return hasKey;
+			return findInParent ? _parent.Has(key) : hasKey;
 		}
 
 		public void Inject<T>(T instance)

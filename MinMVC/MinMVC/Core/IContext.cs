@@ -29,5 +29,7 @@ namespace MinMVC
 		void Inject<T>(T instance);
 
 		void CleanUp();
+
+		void OnInit<T>() where T : class;
 	}
 }
