@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace MinMVC
 {
@@ -7,12 +8,15 @@ namespace MinMVC
 	{
 		public event Action onCleanUp = delegate { };
 
-		readonly IDictionary<Type, Type> _typeMap = new Dictionary<Type, Type>();
-		readonly IDictionary<Type, bool> _initMap = new Dictionary<Type, bool>();
-		readonly IDictionary<Type, object> _instanceCache = new Dictionary<Type, object>();
+		static readonly object[] EMPTY_PARAMS = new object [0];
+
+		readonly IDictionary<Type, InjectionInfo> infoMap = new Dictionary<Type, InjectionInfo>();
+		readonly IDictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
+		readonly IDictionary<Type, bool> initMap = new Dictionary<Type, bool>();
+		readonly IDictionary<Type, object> instanceCache = new Dictionary<Type, object>();
+		readonly IDictionary<object, InjectionInfo> waitingList = new Dictionary<object, InjectionInfo> ();
 
 		IContext _parent;
-		IInjector _injector;
 
 		public IContext parent {
 			set {
@@ -28,11 +32,8 @@ namespace MinMVC
 			}
 		}
 
-		public Context(IInjector injector = null)
+		public Context()
 		{
-			_injector = injector ?? new Injector();
-			_injector.GetInstance = GetInstance;
-
 			RegisterInstance<IContext>(this);
 		}
 
@@ -61,9 +62,9 @@ namespace MinMVC
 
 		public void Register(Type key, Type value, bool preventCaching = false)
 		{
-			if(!_typeMap.ContainsKey(key)) {
-				_typeMap[key] = value;
-				_initMap [key] = false;
+			if(!typeMap.ContainsKey(key)) {
+				typeMap[key] = value;
+				initMap [key] = false;
 
 				if(!preventCaching) {
 					Cache(key, default (object));
@@ -83,10 +84,10 @@ namespace MinMVC
 		void Cache<T>(Type key, T instance)
 		{
 			object cachedInstance;
-			_instanceCache.TryGetValue(key, out cachedInstance);
+			instanceCache.TryGetValue(key, out cachedInstance);
 
 			if(cachedInstance == null) {
-				_instanceCache[key] = instance;
+				instanceCache[key] = instance;
 			} else {
 				throw new AlreadyRegisteredException("already cached; " + key);
 			}
@@ -95,13 +96,37 @@ namespace MinMVC
 		public void OnInit<T>() where T : class
 		{
 			Type type = typeof(T);
-			_initMap [type] = true;
-			CheckWaiting ();
+			initMap [type] = true;
+			CheckWaiting (type);
 		}
 
-		void CheckWaiting ()
+		void CheckWaiting (Type typeJustInitialized)
 		{
-			
+			Dictionary<object, InjectionInfo> initList = null;
+
+			waitingList.Each (entry => {
+				InjectionInfo info = entry.Value;
+				HashSet<Type> typesToWaitFor = info.waitingFor;
+
+				if (typesToWaitFor.Contains (typeJustInitialized)) {
+					bool readyToInit = true;
+
+					foreach (var typeToWaitFor in typesToWaitFor) {
+						if (!initMap[typeToWaitFor]) {
+							readyToInit = false;
+							break;
+						}
+					}
+
+					if (readyToInit) {
+						initList = initList ?? new Dictionary<object, InjectionInfo> ();
+						initList[entry.Key] = info;
+					}
+				}
+			});
+
+			initList.Each (entry => waitingList.Remove (entry.Key));
+			initList.Each (entry => InvokeMethods (entry.Key, entry.Value.postInits));
 		}
 
 		public T Get<T>(Type key = null) where T : class
@@ -114,17 +139,17 @@ namespace MinMVC
 		public object GetInstance(Type key)
 		{
 			object instance;
-			_instanceCache.TryGetValue(key, out instance);
+			instanceCache.TryGetValue(key, out instance);
 
 			if(instance == null) {
 				Type value;
 
-				if(_typeMap.TryGetValue(key, out value)) {
+				if(typeMap.TryGetValue(key, out value)) {
 					instance = Activator.CreateInstance(value);
-					_injector.Inject(instance);
+					Inject(instance);
 
-					if(_instanceCache.ContainsKey(key)) {
-						_instanceCache[key] = instance;
+					if(instanceCache.ContainsKey(key)) {
+						instanceCache[key] = instance;
 					}
 				} else if(hasParent) {
 					instance = _parent.GetInstance(key);
@@ -147,15 +172,10 @@ namespace MinMVC
 
 		public bool Has(Type key)
 		{
-			bool hasKey = _instanceCache.ContainsKey(key) || _typeMap.ContainsKey(key);
+			bool hasKey = instanceCache.ContainsKey(key) || typeMap.ContainsKey(key);
 			bool findInParent = !hasKey && hasParent;
 
 			return findInParent ? _parent.Has(key) : hasKey;
-		}
-
-		public void Inject<T>(T instance)
-		{
-			_injector.Inject(instance);
 		}
 
 		bool hasParent {
@@ -163,6 +183,142 @@ namespace MinMVC
 				return _parent != null;
 			}
 		}
+
+
+		public void Inject<T>(T instance)
+		{
+			Type key = instance.GetType();
+			InjectionInfo info;
+
+			if(!infoMap.TryGetValue(key, out info)) {
+				infoMap[key] = info = ParseInfo(key);
+			}
+
+			if(info != null) {
+				InjectProperties(instance, key, info.injections, BindingFlags.SetProperty | BindingFlags.SetField);
+				InvokeMethods(instance, info.postInjections);
+
+				if (info.waitingFor != null) {
+					waitingList [instance] = info;
+				}
+			}
+		}
+
+		InjectionInfo ParseInfo(Type type)
+		{
+			IDictionary<string, Type> injections = null;
+			HashSet<Type> waitingFor = null;
+			GetPropertyInjections(type.GetProperties(), ref injections, ref waitingFor);
+			GetFieldInjections(type.GetFields(), ref injections, ref waitingFor);
+			IList<MethodInfo> postInjections = GetPostMethods<PostInjection>(type.GetMethods());
+			IList<MethodInfo> postInits = GetPostMethods<PostInit>(type.GetMethods());
+
+			InjectionInfo info = null;
+
+			if(injections != null || postInjections != null || postInits != null) {
+				info = new InjectionInfo {
+					injections = injections,
+					postInjections = postInjections,
+					postInits = postInits,
+					waitingFor = waitingFor
+				};
+			}
+
+			return info;
+		}
+
+		void InjectProperties<T>(T instance, Type type, IDictionary<string, Type> properties, BindingFlags flags)
+		{
+			if(properties != null) {
+				properties.Each(pair => {
+					object injection = GetInstance(pair.Value);
+					object[] param = { injection };
+
+					type.InvokeMember(pair.Key, flags, null, instance, param);
+				});
+			}
+		}
+
+		void InvokeMethods(object instance, IList<MethodInfo> methods)
+		{
+			if(methods != null) {
+				methods.Each(i => i.Invoke(instance, EMPTY_PARAMS));
+			}
+		}
+
+		IList<MethodInfo> GetPostMethods<T>(MethodInfo[] methods) where T: Attribute
+		{
+			IList<MethodInfo> injections = null;
+
+			methods.Each(method => method.GetCustomAttributes(true).Each(attribute => {
+				if(attribute is T) {
+					injections = injections ?? new List<MethodInfo>();
+					injections.Add(method);
+				}
+			}));
+
+			return injections;
+		}
+
+		void GetFieldInjections(FieldInfo[] fields, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
+		{
+			foreach (var field in fields) {
+				ParseAttributes (field, field.FieldType, ref injections, ref waitingFor);
+			}
+		}
+
+		void GetPropertyInjections(PropertyInfo[] properties, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
+		{
+			foreach (var property in properties) {
+				ParseAttributes (property, property.PropertyType, ref injections, ref waitingFor);
+			}
+		}
+
+		void ParseAttributes(MemberInfo info, Type type, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
+		{
+			object[] attributes = info.GetCustomAttributes(true);
+
+			foreach(Inject attribute in attributes) {
+				if(attribute != null) {
+					injections = injections ?? new Dictionary<string, Type>();
+					injections[info.Name] = type;
+
+					if (attribute.hasToBeInitialized) {
+						waitingFor = waitingFor ?? new HashSet<Type> ();
+						waitingFor.Add (type);
+					}
+				}
+			}
+		}
+	}
+
+	public class InjectionInfo
+	{
+		public IList<MethodInfo> postInjections;
+		public IList<MethodInfo> postInits;
+		public IDictionary<string, Type> injections;
+		public HashSet<Type> waitingFor;
+	}
+
+	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+	public class Inject : Attribute
+	{
+		public readonly bool hasToBeInitialized;
+
+		public Inject (bool initialized = false)
+		{
+			hasToBeInitialized = initialized;
+		}
+	}
+
+	[AttributeUsage(AttributeTargets.Method)]
+	public class PostInjection : Attribute
+	{
+	}
+
+	[AttributeUsage(AttributeTargets.Method)]
+	public class PostInit : Attribute
+	{
 	}
 
 	public class NotRegisteredException : Exception

@@ -46,8 +46,6 @@
     <Compile Include="MinMVC\Commands\NamedDispatcher.cs" />
     <Compile Include="MinMVC\Core\Context.cs" />
     <Compile Include="MinMVC\Core\IContext.cs" />
-    <Compile Include="MinMVC\Core\IInjector.cs" />
-    <Compile Include="MinMVC\Core\Injector.cs" />
     <Compile Include="MinMVC\Mediators\IMediatedView.cs" />
     <Compile Include="MinMVC\Mediators\IMediator.cs" />
     <Compile Include="MinMVC\Mediators\IMediators.cs" />
