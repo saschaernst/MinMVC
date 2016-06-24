@@ -7,6 +7,7 @@ namespace MinMVC
 	public class Context : IContext
 	{
 		public event Action onCleanUp = delegate { };
+		public event Action<object> onInitDone = delegate { };
 
 		static readonly object[] EMPTY_PARAMS = new object[0];
 
@@ -21,17 +22,17 @@ namespace MinMVC
 
 		IContext _parent;
 
-		public IContext parent
-		{
-			set
-			{
+		public IContext parent {
+			set {
 				if (hasParent) {
+					_parent.onInitDone -= InitDone;
 					_parent.onCleanUp -= CleanUp;
 				}
 
 				_parent = value;
 
 				if (hasParent) {
+					_parent.onInitDone += InitDone;
 					_parent.onCleanUp += CleanUp;
 				}
 			}
@@ -99,15 +100,16 @@ namespace MinMVC
 			}
 		}
 
-		public void OnStartInit (object injection)
+		public void StartInit (object injection)
 		{
 			initializingInjections.Add(injection);
 		}
 
-		public void OnInitDone (object injection)
+		public void InitDone (object injection)
 		{
 			initializingInjections.Remove(injection);
 			CheckWaitingList(injection);
+			onInitDone(injection);
 		}
 
 		void CheckWaitingList (object injection)
@@ -163,7 +165,6 @@ namespace MinMVC
 
 		public bool Has<T> ()
 		{
-
 			return Has(typeof(T));
 		}
 
@@ -175,8 +176,7 @@ namespace MinMVC
 			return findInParent ? _parent.Has(key) : hasKey;
 		}
 
-		bool hasParent
-		{
+		bool hasParent {
 			get { return _parent != null; }
 		}
 
@@ -238,7 +238,7 @@ namespace MinMVC
 
 					type.InvokeMember(pair.Key, flags, null, instance, param);
 
-					if (waitingFor != null && waitingFor.Contains(injectionType) && initializingInjections.Contains(injection)) {
+					if (waitingFor != null && waitingFor.Contains(injectionType) && IsInitializing(injection)) {
 						waitingInjections = waitingInjections ?? new HashSet<object>();
 						waitingInjections.Add(injection);
 					}
@@ -246,6 +246,13 @@ namespace MinMVC
 			}
 
 			return waitingInjections;
+		}
+
+		public bool IsInitializing (object injection)
+		{
+			bool isInitializing = initializingInjections.Contains(injection);
+
+			return !isInitializing && hasParent ? _parent.IsInitializing(injection) : isInitializing;
 		}
 
 		void InvokeMethods (object instance, IEnumerable<MethodInfo> methods)
