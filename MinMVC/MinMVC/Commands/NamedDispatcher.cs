@@ -13,14 +13,8 @@ namespace MinMVC
 
 		public void Register<T>(string eventName) where T : class, IBaseCommand, new()
 		{
-			HashSet<ICommandCache> caches;
-
-			if(!_eventMap.TryGetValue(eventName, out caches)) {
-				_eventMap[eventName] = caches = new HashSet<ICommandCache>();
-			}
-
 			ICommandCache cache = commands.Get<T>();
-			caches.Add(cache);
+			_eventMap.Ensure (eventName).Add (cache);
 		}
 
 		public void Unregister<T>(string eventName) where T : class, IBaseCommand, new()

@@ -12,9 +12,11 @@ namespace MinMVC
 
 		readonly IDictionary<Type, InjectionInfo> infoMap = new Dictionary<Type, InjectionInfo>();
 		readonly IDictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
-		readonly IDictionary<Type, bool> initMap = new Dictionary<Type, bool>();
 		readonly IDictionary<Type, object> instanceCache = new Dictionary<Type, object>();
-		readonly IDictionary<object, InjectionInfo> waitingList = new Dictionary<object, InjectionInfo> ();
+
+		readonly IDictionary<object, bool> initMap = new Dictionary<object, bool>();
+		readonly IDictionary<object, HashSet<object>> waitingForInjections = new Dictionary<object, HashSet<object>> ();
+		readonly IDictionary<object, HashSet<object>> injectionsForInstances = new Dictionary<object, HashSet<object>> ();
 
 		IContext _parent;
 
@@ -64,7 +66,6 @@ namespace MinMVC
 		{
 			if(!typeMap.ContainsKey(key)) {
 				typeMap[key] = value;
-				initMap [key] = false;
 
 				if(!preventCaching) {
 					Cache(key, default (object));
@@ -93,39 +94,42 @@ namespace MinMVC
 			}
 		}
 
-		public void OnInit<T>() where T : class
+		public void OnStartInit(object instance)
 		{
-			Type type = typeof(T);
-			initMap [type] = true;
-			CheckWaiting (type);
+			initMap [instance] = true;
 		}
 
-		void CheckWaiting (Type typeJustInitialized)
+		public void OnInitDone(object instance)
+		{
+			initMap.Remove (instance);
+			CheckWaitingList (instance);
+		}
+
+		void CheckWaitingList (object instanceJustInitialized)
 		{
 			Dictionary<object, InjectionInfo> initList = null;
 
-			waitingList.Each (entry => {
-				InjectionInfo info = entry.Value;
-				HashSet<Type> typesToWaitFor = info.waitingFor;
+//			waitingForInjections.Each (entry => {
+//				HashSet<object> instancesToWaitFor = entry.Value;
+//
+//				if (instancesToWaitFor.Contains (instanceJustInitialized)) {
+//					bool readyToInit = true;
+//
+//					foreach (var instanceToWaitFor in instancesToWaitFor) {
+//						if (!initMap[instanceToWaitFor]) {
+//							readyToInit = false;
+//							break;
+//						}
+//					}
+//
+//					if (readyToInit) {
+//						initList = initList ?? new Dictionary<object, InjectionInfo> ();
+//						initList[entry.Key] = info;
+//					}
+//				}
+//			});
 
-				if (typesToWaitFor.Contains (typeJustInitialized)) {
-					bool readyToInit = true;
-
-					foreach (var typeToWaitFor in typesToWaitFor) {
-						if (!initMap[typeToWaitFor]) {
-							readyToInit = false;
-							break;
-						}
-					}
-
-					if (readyToInit) {
-						initList = initList ?? new Dictionary<object, InjectionInfo> ();
-						initList[entry.Key] = info;
-					}
-				}
-			});
-
-			initList.Each (entry => waitingList.Remove (entry.Key));
+			initList.Each (entry => waitingForInjections.Remove (entry.Key));
 			initList.Each (entry => InvokeMethods (entry.Key, entry.Value.postInits));
 		}
 
@@ -184,23 +188,23 @@ namespace MinMVC
 			}
 		}
 
-
 		public void Inject<T>(T instance)
 		{
 			Type key = instance.GetType();
-			InjectionInfo info;
-
-			if(!infoMap.TryGetValue(key, out info)) {
-				infoMap[key] = info = ParseInfo(key);
-			}
+			InjectionInfo info = infoMap.Ensure (key, () => ParseInfo(key));
 
 			if(info != null) {
-				InjectProperties(instance, key, info.injections, BindingFlags.SetProperty | BindingFlags.SetField);
-				InvokeMethods(instance, info.postInjections);
+				HashSet<object> waitingInjections = InjectInstances(instance, key, info.injections, BindingFlags.SetProperty | BindingFlags.SetField, info.waitingFor);
 
-				if (info.waitingFor != null) {
-					waitingList [instance] = info;
+				if (waitingInjections != null) {
+					waitingForInjections [instance] = waitingInjections;
+
+					waitingForInjections.Each (injection => {
+						injectionsForInstances.Ensure (injection).Add (instance);
+					});
 				}
+
+				InvokeMethods(instance, info.postInjections);
 			}
 		}
 
@@ -227,16 +231,27 @@ namespace MinMVC
 			return info;
 		}
 
-		void InjectProperties<T>(T instance, Type type, IDictionary<string, Type> properties, BindingFlags flags)
+		HashSet<object> InjectInstances<T>(T instance, Type type, IDictionary<string, Type> properties, BindingFlags flags, HashSet<Type> waitingFor)
 		{
+			HashSet<object> waitingInjections = null;
+
 			if(properties != null) {
+				waitingInjections = new HashSet<object> ();
+
 				properties.Each(pair => {
+					Type injectionType = pair.Value;
 					object injection = GetInstance(pair.Value);
 					object[] param = { injection };
 
 					type.InvokeMember(pair.Key, flags, null, instance, param);
+
+					if (waitingFor != null && waitingFor.Contains (injectionType)) {
+						waitingInjections.Add (injection);
+					}
 				});
 			}
+
+			return waitingInjections;
 		}
 
 		void InvokeMethods(object instance, IList<MethodInfo> methods)

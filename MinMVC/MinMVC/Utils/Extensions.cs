@@ -18,5 +18,21 @@ namespace MinMVC
 				handler(item);
 			}
 		}
+
+		public static TValue Ensure<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+		{
+			return Ensure (dictionary, key, () => Activator.CreateInstance<TValue>());
+		}
+
+		public static TValue Ensure<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> defFunc)
+		{
+			TValue value;
+
+			if (!dictionary.TryGetValue (key, out value)) {
+				dictionary [key] = value = defFunc ();
+			}
+
+			return value;
+		}
 	}
 }

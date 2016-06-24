@@ -26,11 +26,7 @@ namespace MinMVC
 		public ICommandCache Get<T>(bool init = false) where T : class, IBaseCommand, new()
 		{
 			Type type = typeof(T);
-			ICommandCache cache;
-
-			if(!_caches.TryGetValue(type, out cache)) {
-				_caches[type] = cache = new CommandCache<T>(context, init);
-			}
+			ICommandCache cache = _caches.Ensure (type, () => new CommandCache<T>(context, init));
 
 			return cache;
 		}

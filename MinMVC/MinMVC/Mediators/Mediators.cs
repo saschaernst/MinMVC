@@ -13,11 +13,7 @@ namespace MinMVC
 		public void Map<TViewInterface, TMediator>() where TViewInterface : IMediatedView where TMediator : IMediator
 		{
 			Type viewType = typeof(TViewInterface);
-			HashSet<Type> mediatorTypes;
-
-			if(!_viewMediatorsMap.TryGetValue(viewType, out mediatorTypes)) {
-				_viewMediatorsMap[viewType] = mediatorTypes = new HashSet<Type>();
-			}
+			HashSet<Type> mediatorTypes = _viewMediatorsMap.Ensure (viewType);
 
 			if(!context.Has<TMediator>()) {
 				context.Register<TMediator>(true);
