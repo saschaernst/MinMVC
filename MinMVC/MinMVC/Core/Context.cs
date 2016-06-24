@@ -8,173 +8,166 @@ namespace MinMVC
 	{
 		public event Action onCleanUp = delegate { };
 
-		static readonly object[] EMPTY_PARAMS = new object [0];
+		static readonly object[] EMPTY_PARAMS = new object[0];
 
 		readonly IDictionary<Type, InjectionInfo> infoMap = new Dictionary<Type, InjectionInfo>();
 		readonly IDictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
 		readonly IDictionary<Type, object> instanceCache = new Dictionary<Type, object>();
 
-		readonly IDictionary<object, bool> initMap = new Dictionary<object, bool>();
-		readonly IDictionary<object, HashSet<object>> waitingForInjections = new Dictionary<object, HashSet<object>> ();
-		readonly IDictionary<object, HashSet<object>> injectionsForInstances = new Dictionary<object, HashSet<object>> ();
+		readonly HashSet<object> initializingInjections = new HashSet<object>();
+		readonly IDictionary<object, HashSet<object>> instances2Injections = new Dictionary<object, HashSet<object>>();
+		readonly IDictionary<object, HashSet<object>> injections2Instances = new Dictionary<object, HashSet<object>>();
+		readonly IDictionary<object, HashSet<MethodInfo>> instances2PostInits = new Dictionary<object, HashSet<MethodInfo>>();
 
 		IContext _parent;
 
-		public IContext parent {
-			set {
-				if(hasParent) {
+		public IContext parent
+		{
+			set
+			{
+				if (hasParent) {
 					_parent.onCleanUp -= CleanUp;
 				}
 
 				_parent = value;
 
-				if(hasParent) {
+				if (hasParent) {
 					_parent.onCleanUp += CleanUp;
 				}
 			}
 		}
 
-		public Context()
+		public Context ()
 		{
 			RegisterInstance<IContext>(this);
 		}
 
-		public void CleanUp()
+		public void CleanUp ()
 		{
 			parent = null;
 			onCleanUp();
 		}
 
-		public void Register<T>(bool preventCaching = false)
+		public void Register<T> (bool preventCaching = false)
 		{
 			Register<T, T>(preventCaching);
 		}
 
-		public void Register<TInterface, TClass>(bool preventCaching = false)
+		public void Register<TInterface, TClass> (bool preventCaching = false)
 		{
 			Type key = typeof(TInterface);
 			Type value = typeof(TClass);
 			Register(key, value, preventCaching);
 		}
 
-		public void Register(Type type, bool preventCaching = false)
+		public void Register (Type type, bool preventCaching = false)
 		{
 			Register(type, type, preventCaching);
 		}
 
-		public void Register(Type key, Type value, bool preventCaching = false)
+		public void Register (Type key, Type value, bool preventCaching = false)
 		{
-			if(!typeMap.ContainsKey(key)) {
+			if (!typeMap.ContainsKey(key)) {
 				typeMap[key] = value;
 
-				if(!preventCaching) {
-					Cache(key, default (object));
+				if (!preventCaching) {
+					Cache(key, default(object));
 				}
-			} else {
+			}
+			else {
 				throw new AlreadyRegisteredException("already registered; " + key);
 			}
 		}
 
-		public void RegisterInstance<T>(T instance)
+		public void RegisterInstance<T> (T instance)
 		{
 			Type key = typeof(T);
 			Register(key, key, true);
 			Cache(key, instance);
 		}
 
-		void Cache<T>(Type key, T instance)
+		void Cache<T> (Type key, T instance)
 		{
 			object cachedInstance;
 			instanceCache.TryGetValue(key, out cachedInstance);
 
-			if(cachedInstance == null) {
+			if (cachedInstance == null) {
 				instanceCache[key] = instance;
-			} else {
+			}
+			else {
 				throw new AlreadyRegisteredException("already cached; " + key);
 			}
 		}
 
-		public void OnStartInit(object instance)
+		public void OnStartInit (object injection)
 		{
-			initMap [instance] = true;
+			initializingInjections.Add(injection);
 		}
 
-		public void OnInitDone(object instance)
+		public void OnInitDone (object injection)
 		{
-			initMap.Remove (instance);
-			CheckWaitingList (instance);
+			initializingInjections.Remove(injection);
+			CheckWaitingList(injection);
 		}
 
-		void CheckWaitingList (object instanceJustInitialized)
+		void CheckWaitingList (object injection)
 		{
-			Dictionary<object, InjectionInfo> initList = null;
+			var instances = injections2Instances.Withdraw(injection);
 
-//			waitingForInjections.Each (entry => {
-//				HashSet<object> instancesToWaitFor = entry.Value;
-//
-//				if (instancesToWaitFor.Contains (instanceJustInitialized)) {
-//					bool readyToInit = true;
-//
-//					foreach (var instanceToWaitFor in instancesToWaitFor) {
-//						if (!initMap[instanceToWaitFor]) {
-//							readyToInit = false;
-//							break;
-//						}
-//					}
-//
-//					if (readyToInit) {
-//						initList = initList ?? new Dictionary<object, InjectionInfo> ();
-//						initList[entry.Key] = info;
-//					}
-//				}
-//			});
+			instances.Each(instance => {
+				var injections = instances2Injections[instance];
+				injections.Remove(injection);
 
-			initList.Each (entry => waitingForInjections.Remove (entry.Key));
-			initList.Each (entry => InvokeMethods (entry.Key, entry.Value.postInits));
+				if (injections.IsEmpty()) {
+					instances2Injections.Remove(instance);
+					var postInits = instances2PostInits.Withdraw(instance);
+					InvokeMethods(instance, postInits);
+				}
+			});
 		}
 
-		public T Get<T>(Type key = null) where T : class
+		public T Get<T> (Type key = null) where T : class
 		{
 			key = key ?? typeof(T);
 
 			return (T)GetInstance(key);
 		}
 
-		public object GetInstance(Type key)
+		public object GetInstance (Type key)
 		{
 			object instance;
 			instanceCache.TryGetValue(key, out instance);
 
-			if(instance == null) {
+			if (instance == null) {
 				Type value;
 
-				if(typeMap.TryGetValue(key, out value)) {
+				if (typeMap.TryGetValue(key, out value)) {
 					instance = Activator.CreateInstance(value);
 					Inject(instance);
 
-					if(instanceCache.ContainsKey(key)) {
+					if (instanceCache.ContainsKey(key)) {
 						instanceCache[key] = instance;
 					}
-				} else if(hasParent) {
+				}
+				else if (hasParent) {
 					instance = _parent.GetInstance(key);
 				}
 			}
 
-			if(instance == null) {
+			if (instance == null) {
 				throw new NotRegisteredException("not registered: " + key);
 			}
 
 			return instance;
 		}
 
-		public bool Has<T>()
+		public bool Has<T> ()
 		{
-			Type type = typeof(T);
 
-			return Has(type);
+			return Has(typeof(T));
 		}
 
-		public bool Has(Type key)
+		public bool Has (Type key)
 		{
 			bool hasKey = instanceCache.ContainsKey(key) || typeMap.ContainsKey(key);
 			bool findInParent = !hasKey && hasParent;
@@ -182,44 +175,45 @@ namespace MinMVC
 			return findInParent ? _parent.Has(key) : hasKey;
 		}
 
-		bool hasParent {
-			get {
-				return _parent != null;
-			}
+		bool hasParent
+		{
+			get { return _parent != null; }
 		}
 
-		public void Inject<T>(T instance)
+		public void Inject<T> (T instance)
 		{
 			Type key = instance.GetType();
-			InjectionInfo info = infoMap.Ensure (key, () => ParseInfo(key));
+			InjectionInfo info = infoMap.Retrieve(key, () => ParseInfo(key));
 
-			if(info != null) {
-				HashSet<object> waitingInjections = InjectInstances(instance, key, info.injections, BindingFlags.SetProperty | BindingFlags.SetField, info.waitingFor);
+			if (info != null) {
+				var waitingInjections = InjectInstances(instance, key, info.injections, BindingFlags.SetProperty | BindingFlags.SetField, info.waitingFor);
 
 				if (waitingInjections != null) {
-					waitingForInjections [instance] = waitingInjections;
-
-					waitingForInjections.Each (injection => {
-						injectionsForInstances.Ensure (injection).Add (instance);
-					});
+					instances2Injections[instance] = waitingInjections;
+					instances2PostInits[instance] = info.postInits;
+					waitingInjections.Each(injection => injections2Instances.Retrieve(injection).Add(instance));
 				}
 
 				InvokeMethods(instance, info.postInjections);
+
+				if (waitingInjections == null) {
+					InvokeMethods(instance, info.postInits);
+				}
 			}
 		}
 
-		InjectionInfo ParseInfo(Type type)
+		InjectionInfo ParseInfo (Type type)
 		{
 			IDictionary<string, Type> injections = null;
 			HashSet<Type> waitingFor = null;
 			GetPropertyInjections(type.GetProperties(), ref injections, ref waitingFor);
 			GetFieldInjections(type.GetFields(), ref injections, ref waitingFor);
-			IList<MethodInfo> postInjections = GetPostMethods<PostInjection>(type.GetMethods());
-			IList<MethodInfo> postInits = GetPostMethods<PostInit>(type.GetMethods());
+			var postInjections = GetPostMethods<PostInjection>(type.GetMethods());
+			var postInits = GetPostMethods<PostInit>(type.GetMethods());
 
 			InjectionInfo info = null;
 
-			if(injections != null || postInjections != null || postInits != null) {
+			if (injections != null || postInjections != null || postInits != null) {
 				info = new InjectionInfo {
 					injections = injections,
 					postInjections = postInjections,
@@ -231,22 +225,22 @@ namespace MinMVC
 			return info;
 		}
 
-		HashSet<object> InjectInstances<T>(T instance, Type type, IDictionary<string, Type> properties, BindingFlags flags, HashSet<Type> waitingFor)
+		HashSet<object> InjectInstances<T> (T instance, Type type, IDictionary<string, Type> injectionMap, BindingFlags flags, ICollection<Type> waitingFor)
 		{
 			HashSet<object> waitingInjections = null;
 
-			if(properties != null) {
-				waitingInjections = new HashSet<object> ();
+			if (injectionMap != null) {
 
-				properties.Each(pair => {
+				injectionMap.Each(pair => {
 					Type injectionType = pair.Value;
 					object injection = GetInstance(pair.Value);
 					object[] param = { injection };
 
 					type.InvokeMember(pair.Key, flags, null, instance, param);
 
-					if (waitingFor != null && waitingFor.Contains (injectionType)) {
-						waitingInjections.Add (injection);
+					if (waitingFor != null && waitingFor.Contains(injectionType) && initializingInjections.Contains(injection)) {
+						waitingInjections = waitingInjections ?? new HashSet<object>();
+						waitingInjections.Add(injection);
 					}
 				});
 			}
@@ -254,20 +248,20 @@ namespace MinMVC
 			return waitingInjections;
 		}
 
-		void InvokeMethods(object instance, IList<MethodInfo> methods)
+		void InvokeMethods (object instance, IEnumerable<MethodInfo> methods)
 		{
-			if(methods != null) {
-				methods.Each(i => i.Invoke(instance, EMPTY_PARAMS));
+			if (methods != null) {
+				methods.Each(method => method.Invoke(instance, EMPTY_PARAMS));
 			}
 		}
 
-		IList<MethodInfo> GetPostMethods<T>(MethodInfo[] methods) where T: Attribute
+		HashSet<MethodInfo> GetPostMethods<T> (IEnumerable<MethodInfo> methods) where T : Attribute
 		{
-			IList<MethodInfo> injections = null;
+			HashSet<MethodInfo> injections = null;
 
 			methods.Each(method => method.GetCustomAttributes(true).Each(attribute => {
-				if(attribute is T) {
-					injections = injections ?? new List<MethodInfo>();
+				if (attribute is T) {
+					injections = injections ?? new HashSet<MethodInfo>();
 					injections.Add(method);
 				}
 			}));
@@ -275,32 +269,32 @@ namespace MinMVC
 			return injections;
 		}
 
-		void GetFieldInjections(FieldInfo[] fields, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
+		void GetFieldInjections (FieldInfo[] fields, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
 		{
 			foreach (var field in fields) {
-				ParseAttributes (field, field.FieldType, ref injections, ref waitingFor);
+				ParseAttributes(field, field.FieldType, ref injections, ref waitingFor);
 			}
 		}
 
-		void GetPropertyInjections(PropertyInfo[] properties, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
+		void GetPropertyInjections (PropertyInfo[] properties, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
 		{
 			foreach (var property in properties) {
-				ParseAttributes (property, property.PropertyType, ref injections, ref waitingFor);
+				ParseAttributes(property, property.PropertyType, ref injections, ref waitingFor);
 			}
 		}
 
-		void ParseAttributes(MemberInfo info, Type type, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
+		void ParseAttributes (MemberInfo info, Type type, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
 		{
 			object[] attributes = info.GetCustomAttributes(true);
 
-			foreach(Inject attribute in attributes) {
-				if(attribute != null) {
+			foreach (Inject attribute in attributes) {
+				if (attribute != null) {
 					injections = injections ?? new Dictionary<string, Type>();
 					injections[info.Name] = type;
 
-					if (attribute.hasToBeInitialized) {
-						waitingFor = waitingFor ?? new HashSet<Type> ();
-						waitingFor.Add (type);
+					if (attribute is InjectAndWait) {
+						waitingFor = waitingFor ?? new HashSet<Type>();
+						waitingFor.Add(type);
 					}
 				}
 			}
@@ -309,8 +303,8 @@ namespace MinMVC
 
 	public class InjectionInfo
 	{
-		public IList<MethodInfo> postInjections;
-		public IList<MethodInfo> postInits;
+		public HashSet<MethodInfo> postInjections;
+		public HashSet<MethodInfo> postInits;
 		public IDictionary<string, Type> injections;
 		public HashSet<Type> waitingFor;
 	}
@@ -318,12 +312,11 @@ namespace MinMVC
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
 	public class Inject : Attribute
 	{
-		public readonly bool hasToBeInitialized;
+	}
 
-		public Inject (bool initialized = false)
-		{
-			hasToBeInitialized = initialized;
-		}
+	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+	public class InjectAndWait : Inject
+	{
 	}
 
 	[AttributeUsage(AttributeTargets.Method)]
@@ -338,14 +331,14 @@ namespace MinMVC
 
 	public class NotRegisteredException : Exception
 	{
-		public NotRegisteredException(string message) : base(message)
+		public NotRegisteredException (string message) : base(message)
 		{
 		}
 	}
 
 	public class AlreadyRegisteredException : Exception
 	{
-		public AlreadyRegisteredException(string message) : base(message)
+		public AlreadyRegisteredException (string message) : base(message)
 		{
 		}
 	}

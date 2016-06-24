@@ -8,23 +8,23 @@ namespace MinMVC
 		public static void Times (this int count, Action<int> handler)
 		{
 			for (int i = 0; i < count; i += 1) {
-				handler(i);
+				handler (i);
 			}
 		}
 
 		public static void Each<T> (this IEnumerable<T> enumerable, Action<T> handler)
 		{
 			foreach (T item in enumerable) {
-				handler(item);
+				handler (item);
 			}
 		}
 
-		public static TValue Ensure<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+		public static TValue Retrieve<TKey, TValue> (this IDictionary<TKey, TValue> dictionary, TKey key)
 		{
-			return Ensure (dictionary, key, () => Activator.CreateInstance<TValue>());
+			return Retrieve (dictionary, key, () => Activator.CreateInstance<TValue> ());
 		}
 
-		public static TValue Ensure<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> defFunc)
+		public static TValue Retrieve<TKey, TValue> (this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> defFunc)
 		{
 			TValue value;
 
@@ -33,6 +33,22 @@ namespace MinMVC
 			}
 
 			return value;
+		}
+
+		public static TValue Withdraw<TKey, TValue> (this IDictionary<TKey, TValue> dictionary, TKey key)
+		{
+			TValue value;
+
+			if (dictionary.TryGetValue (key, out value)) {
+				dictionary.Remove (key);
+			}
+
+			return value;
+		}
+
+		public static bool IsEmpty<T> (this ICollection<T> collection)
+		{
+			return collection.Count == 0;
 		}
 	}
 }
