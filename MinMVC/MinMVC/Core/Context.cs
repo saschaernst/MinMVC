@@ -7,7 +7,7 @@ namespace MinMVC
 	public class Context : IContext
 	{
 		public event Action onCleanUp = delegate { };
-		public event Action<object> onInitDone = delegate { };
+		public event Action<object> onCheckWaitingList = delegate { };
 
 		static readonly object[] EMPTY_PARAMS = new object[0];
 
@@ -25,14 +25,14 @@ namespace MinMVC
 		public IContext parent {
 			set {
 				if (hasParent) {
-					_parent.onInitDone -= InitDone;
+					_parent.onCheckWaitingList -= CheckWaitingList;
 					_parent.onCleanUp -= CleanUp;
 				}
 
 				_parent = value;
 
 				if (hasParent) {
-					_parent.onInitDone += InitDone;
+					_parent.onCheckWaitingList += CheckWaitingList;
 					_parent.onCleanUp += CleanUp;
 				}
 			}
@@ -102,14 +102,18 @@ namespace MinMVC
 
 		public void StartInit (object injection)
 		{
-			initializingInjections.Add(injection);
+			if (!initializingInjections.Add(injection)) {
+				throw new InitializingException(injection + " is already initializing");
+			}
 		}
 
 		public void InitDone (object injection)
 		{
-			initializingInjections.Remove(injection);
+			if (!initializingInjections.Remove(injection)) {
+				throw new InitializingException(injection + " is not initializing");
+			}
+
 			CheckWaitingList(injection);
-			onInitDone(injection);
 		}
 
 		void CheckWaitingList (object injection)
@@ -126,6 +130,8 @@ namespace MinMVC
 					InvokeMethods(instance, postInits);
 				}
 			});
+
+			onCheckWaitingList(injection);
 		}
 
 		public T Get<T> (Type key = null) where T : class
@@ -194,6 +200,10 @@ namespace MinMVC
 					waitingInjections.Each(injection => injections2Instances.Retrieve(injection).Add(instance));
 				}
 
+				if (info.waitForInit) {
+					initializingInjections.Add(instance);
+				}
+
 				InvokeMethods(instance, info.postInjections);
 
 				if (waitingInjections == null) {
@@ -206,8 +216,12 @@ namespace MinMVC
 		{
 			IDictionary<string, Type> injections = null;
 			HashSet<Type> waitingFor = null;
-			GetPropertyInjections(type.GetProperties(), ref injections, ref waitingFor);
-			GetFieldInjections(type.GetFields(), ref injections, ref waitingFor);
+
+			Console.WriteLine(type);
+			Console.WriteLine(type.GetCustomAttributes(false).Length);
+
+			ParsePropertyAttributes(type.GetProperties(), ref injections, ref waitingFor);
+			ParseFieldAttributes(type.GetFields(), ref injections, ref waitingFor);
 			var postInjections = GetPostMethods<PostInjection>(type.GetMethods());
 			var postInits = GetPostMethods<PostInit>(type.GetMethods());
 
@@ -220,6 +234,8 @@ namespace MinMVC
 					postInits = postInits,
 					waitingFor = waitingFor
 				};
+
+				ParseClassAttributes(type.GetCustomAttributes(true), info);
 			}
 
 			return info;
@@ -276,14 +292,25 @@ namespace MinMVC
 			return injections;
 		}
 
-		void GetFieldInjections (FieldInfo[] fields, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
+		void ParseClassAttributes (object[] attributes, InjectionInfo info)
+		{
+			foreach (Attribute attribute in attributes) {
+				if (attribute != null) {
+					if (attribute is InjectAndWait) {
+						info.waitForInit = true;
+					}
+				}
+			}
+		}
+
+		void ParseFieldAttributes (FieldInfo[] fields, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
 		{
 			foreach (var field in fields) {
 				ParseAttributes(field, field.FieldType, ref injections, ref waitingFor);
 			}
 		}
 
-		void GetPropertyInjections (PropertyInfo[] properties, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
+		void ParsePropertyAttributes (PropertyInfo[] properties, ref IDictionary<string, Type> injections, ref HashSet<Type> waitingFor)
 		{
 			foreach (var property in properties) {
 				ParseAttributes(property, property.PropertyType, ref injections, ref waitingFor);
@@ -314,27 +341,23 @@ namespace MinMVC
 		public HashSet<MethodInfo> postInits;
 		public IDictionary<string, Type> injections;
 		public HashSet<Type> waitingFor;
+		public bool waitForInit;
 	}
 
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-	public class Inject : Attribute
-	{
-	}
+	public class Inject : Attribute { }
 
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-	public class InjectAndWait : Inject
-	{
-	}
+	public class InjectAndWait : Inject { }
 
 	[AttributeUsage(AttributeTargets.Method)]
-	public class PostInjection : Attribute
-	{
-	}
+	public class PostInjection : Attribute { }
 
 	[AttributeUsage(AttributeTargets.Method)]
-	public class PostInit : Attribute
-	{
-	}
+	public class PostInit : Attribute { }
+
+	[AttributeUsage(AttributeTargets.Class)]
+	public class WaitForInit : Attribute { }
 
 	public class NotRegisteredException : Exception
 	{
@@ -346,6 +369,13 @@ namespace MinMVC
 	public class AlreadyRegisteredException : Exception
 	{
 		public AlreadyRegisteredException (string message) : base(message)
+		{
+		}
+	}
+
+	public class InitializingException : Exception
+	{
+		public InitializingException (string message) : base(message)
 		{
 		}
 	}

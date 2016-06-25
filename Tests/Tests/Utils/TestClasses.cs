@@ -1,5 +1,4 @@
 ﻿using System;
-using MinMVC;
 
 namespace MinMVC
 {
@@ -8,6 +7,7 @@ namespace MinMVC
 
 	}
 
+	[WaitForInit]
 	class TestClass : ITestClass
 	{
 
@@ -33,12 +33,12 @@ namespace MinMVC
 	{
 		public IDispatcher dispatcher;
 
-		protected override void Register()
+		protected override void Register ()
 		{
 			dispatcher.dispatch += _view.Remove;
 		}
 
-		protected override void Unregister()
+		protected override void Unregister ()
 		{
 			dispatcher.dispatch -= _view.Remove;
 			dispatcher = null;
@@ -52,9 +52,9 @@ namespace MinMVC
 
 	public class TestCommand : Command
 	{
-		public override void Execute()
+		public override void Execute ()
 		{
-			
+
 		}
 	}
 }

@@ -5,7 +5,7 @@ namespace MinMVC
 	public interface IContext
 	{
 		event Action onCleanUp;
-		event Action<object> onInitDone;
+		event Action<object> onCheckWaitingList;
 
 		IContext parent { set; }
 
