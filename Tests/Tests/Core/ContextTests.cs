@@ -1,6 +1,4 @@
 ﻿using NUnit.Framework;
-using MinMVC;
-using System;
 
 namespace MinMVC
 {
@@ -9,36 +7,36 @@ namespace MinMVC
 		IContext _context;
 
 		[SetUp]
-		public void Setup()
+		public void Setup ()
 		{
 			_context = new Context();
 		}
 
 		[Test]
-		public void IsSetupCorrect()
+		public void IsSetupCorrect ()
 		{
 			Assert.True(_context.Has<IContext>());
 		}
 
 		[Test]
-		public void RegistersClassByTemplate()
+		public void RegistersClassByTemplate ()
 		{
 			_context.Register<TestClass>();
-		
+
 			Assert.True(_context.Has<TestClass>());
 		}
 
 		[Test]
-		public void RegistersInterfaceByTemplate()
+		public void RegistersInterfaceByTemplate ()
 		{
 			_context.Register<ITestClass, TestClass>();
-		
+
 			Assert.True(_context.Has<ITestClass>());
 			Assert.False(_context.Has<TestClass>());
 		}
 
 		[Test]
-		public void RegistersClassByType()
+		public void RegistersClassByType ()
 		{
 			var type = typeof(TestClass);
 			_context.Register(type);
@@ -47,7 +45,7 @@ namespace MinMVC
 		}
 
 		[Test]
-		public void RegistersInterfaceByType()
+		public void RegistersInterfaceByType ()
 		{
 			var interfaceType = typeof(ITestClass);
 			var classType = typeof(TestClass);
@@ -58,7 +56,7 @@ namespace MinMVC
 		}
 
 		[Test]
-		public void RegistersInstanceAlwaysCached()
+		public void RegistersInstanceAlwaysCached ()
 		{
 			ITestClass instance = new TestClass();
 			_context.RegisterInstance(instance);
@@ -72,57 +70,64 @@ namespace MinMVC
 		}
 
 		[Test]
-		public void CachesInstances()
+		public void CachesInstances ()
 		{
 			_context.Register<TestClass>();
 			var inst1 = _context.Get<TestClass>();
 			var inst2 = _context.Get<TestClass>();
-		
+
 			Assert.AreEqual(inst1, inst2);
 		}
 
 		[Test]
-		public void PreventsCaching()
+		public void PreventsCaching ()
 		{
 			_context.Register<TestClass>(true);
 			var inst1 = _context.Get<TestClass>();
 			var inst2 = _context.Get<TestClass>();
-		
+
 			Assert.AreNotEqual(inst1, inst2);
 		}
 
 		[Test]
-		public void ThrowsExceptionWhenTypeNotRegistered()
+		public void ThrowsExceptionWhenTypeNotRegistered ()
 		{
-			var noInstance = new TestDelegate(() => _context.Get<TestClass>());
-
-			Assert.Throws<NotRegisteredException>(noInstance);
+			Assert.Throws<NotRegisteredException>(() => _context.Get<TestClass>());
 		}
 
 		[Test]
-		public void InjectsIntoRegisteredInstance()
+		public void InjectsIntoFieldOfRegisteredInstance ()
 		{
-			_context.Register<InjectingTestClass>();
+			_context.Register<FieldInjectionTestClass>();
 			_context.Register<ITestInjection, TestInjection>();
-			var instance = _context.Get<InjectingTestClass>();
+			var instance = _context.Get<FieldInjectionTestClass>();
 
 			Assert.NotNull(instance.testInjection);
 		}
 
 		[Test]
-		public void ThrowsExceptionIfInjectionIsNotRegistered()
+		public void InjectsIntoPropertyOfRegisteredInstance ()
 		{
-			_context.Register<InjectingTestClass>();
-			var noInjection = new TestDelegate(() => _context.Get<InjectingTestClass>());
+			_context.Register<PropertyInjectionTestClass>();
+			_context.Register<ITestInjection, TestInjection>();
+			var instance = _context.Get<PropertyInjectionTestClass>();
 
-			Assert.Throws<NotRegisteredException>(noInjection);
+			Assert.NotNull(instance.testInjection);
 		}
 
 		[Test]
-		public void InjectsIntoNonRegisterdInstance()
+		public void ThrowsExceptionIfInjectionIsNotRegistered ()
+		{
+			_context.Register<FieldInjectionTestClass>();
+
+			Assert.Throws<NotRegisteredException>(() => _context.Get<FieldInjectionTestClass>());
+		}
+
+		[Test]
+		public void InjectsIntoNonRegisterdInstance ()
 		{
 			_context.Register<ITestInjection, TestInjection>();
-			var instance = new InjectingTestClass();
+			var instance = new FieldInjectionTestClass();
 			_context.Inject(instance);
 
 			Assert.NotNull(instance.testInjection);

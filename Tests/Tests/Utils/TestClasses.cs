@@ -7,16 +7,21 @@ namespace MinMVC
 
 	}
 
-	[WaitForInit]
 	class TestClass : ITestClass
 	{
 
 	}
 
-	class InjectingTestClass
+	class FieldInjectionTestClass
 	{
 		[Inject]
 		public ITestInjection testInjection;
+	}
+
+	class PropertyInjectionTestClass
+	{
+		[Inject]
+		public ITestInjection testInjection { get; set; }
 	}
 
 	interface ITestInjection
