@@ -276,9 +276,7 @@ namespace MinMVC
 		void ParseClassAttributes (object[] attributes, InjectionInfo info)
 		{
 			foreach (Attribute attribute in attributes) {
-				if (attribute != null) {
-					info.waitForInit |= attribute is InjectAndWait;
-				}
+				info.waitForInit |= attribute is WaitForInit;
 			}
 		}
 

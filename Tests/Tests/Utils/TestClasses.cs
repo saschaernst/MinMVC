@@ -12,6 +12,12 @@ namespace MinMVC
 
 	}
 
+	[WaitForInit]
+	class InitializingTestClass : ITestClass
+	{
+
+	}
+
 	class FieldInjectionTestClass
 	{
 		[Inject]
@@ -27,6 +33,28 @@ namespace MinMVC
 	interface ITestInjection
 	{
 
+	}
+
+	class WaitForInitInjectingClass
+	{
+		[InjectAndWait]
+		public InitializingTestClass testInjection;
+
+		public bool postInjectHasBeenCalled;
+
+		public bool postInitHasBeenCalled;
+
+		[PostInjection]
+		public void OnPostInject ()
+		{
+			postInjectHasBeenCalled = true;
+		}
+
+		[PostInit]
+		public void OnPostInit ()
+		{
+			postInitHasBeenCalled = true;
+		}
 	}
 
 	class TestInjection : ITestInjection
