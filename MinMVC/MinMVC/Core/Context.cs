@@ -84,17 +84,15 @@ namespace MinMVC
 				throw new AlreadyRegisteredException("already registered; " + key);
 			}
 		}
-
-		public void RegisterInstance<T> (T instance, bool forceInjection = false)
+		public void RegisterInstance<T> (T instance, bool preventInjection = false)
 		{
 			Type key = typeof(T);
 			Register(key, key, true);
 			Cache(key, instance);
 
-			if (forceInjection) {
+			if (!preventInjection) {
 				forceInjections.Add(instance);
 			}
-
 		}
 
 		void Cache<T> (Type key, T instance)
@@ -111,13 +109,6 @@ namespace MinMVC
 		}
 
 		#region async init
-		public void StartInit (object injection)
-		{
-			if (!initializingInjections.Add(injection)) {
-				throw new InitializingException(injection + " is already initializing");
-			}
-		}
-
 		public void InitDone (object injection)
 		{
 			if (!initializingInjections.Remove(injection)) {
@@ -129,18 +120,20 @@ namespace MinMVC
 
 		void CheckWaitingList (object injection)
 		{
-			var instances = injections2Instances.Withdraw(injection);
+			if (injections2Instances.ContainsKey(injection)) {
+				var instances = injections2Instances.Withdraw(injection);
 
-			instances.Each(instance => {
-				var injections = instances2Injections[instance];
-				injections.Remove(injection);
+				instances.Each(instance => {
+					var injections = instances2Injections[instance];
+					injections.Remove(injection);
 
-				if (injections.IsEmpty()) {
-					instances2Injections.Remove(instance);
-					var postInits = instances2PostInits.Withdraw(instance);
-					InvokeMethods(instance, postInits);
-				}
-			});
+					if (injections.IsEmpty()) {
+						instances2Injections.Remove(instance);
+						var postInits = instances2PostInits.Withdraw(instance);
+						InvokeMethods(instance, postInits);
+					}
+				});
+			}
 
 			onCheckWaitingList(injection);
 		}
@@ -275,15 +268,6 @@ namespace MinMVC
 			methods.Each(method => method.Invoke(instance, EMPTY_PARAMS));
 		}
 
-		void ParsePostMethods<T> (IEnumerable<MethodInfo> methods, HashSet<MethodInfo> postMethods) where T : Attribute
-		{
-			methods.Each(method => method.GetCustomAttributes(true).Each(attribute => {
-				if (attribute is T) {
-					postMethods.Add(method);
-				}
-			}));
-		}
-
 		void ParseClassAttributes (object[] attributes, InjectionInfo info)
 		{
 			foreach (Attribute attribute in attributes) {
@@ -301,15 +285,25 @@ namespace MinMVC
 			properties.Each(property => ParseAttributes(property, property.PropertyType, info));
 		}
 
+		void ParsePostMethods<T> (IEnumerable<MethodInfo> methods, HashSet<MethodInfo> postMethods) where T : Attribute
+		{
+			methods.Each(method => method.GetCustomAttributes(true).Each(attribute => {
+				if (attribute is T) {
+					postMethods.Add(method);
+				}
+			}));
+		}
+
 		void ParseAttributes (MemberInfo memberInfo, Type type, InjectionInfo info)
 		{
-			object[] attributes = memberInfo.GetCustomAttributes(true);
+			var attributes = memberInfo.GetCustomAttributes(true);
 
 			attributes.Each(attribute => {
 				if (attribute is Inject) {
 					info.injections[memberInfo.Name] = type;
+					var injectionInfo = infoMap.Retrieve(type, () => ParseInfo(type));
 
-					if (attribute is InjectAndWait) {
+					if (!(attribute is ForceInject) && injectionInfo.waitForInit) {
 						info.waitingFor.Add(type);
 					}
 				}
@@ -333,7 +327,7 @@ namespace MinMVC
 	public class Inject : Attribute { }
 
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-	public class InjectAndWait : Inject { }
+	public class ForceInject : Inject { }
 
 	[AttributeUsage(AttributeTargets.Method)]
 	public class PostInjection : Attribute { }

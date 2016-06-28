@@ -37,17 +37,22 @@ namespace MinMVC
 
 	public class WaitForInitInjectingClass
 	{
-		[InjectAndWait]
+		[Inject]
 		public InitializingTestClass testInjection;
+
+		public int postInjects;
+		public int postInits;
 
 		[PostInjection]
 		public void OnPostInject ()
 		{
+			postInjects++;
 		}
 
 		[PostInit]
 		public void OnPostInit ()
 		{
+			postInits++;
 		}
 	}
 

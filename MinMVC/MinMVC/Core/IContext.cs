@@ -31,8 +31,6 @@ namespace MinMVC
 
 		void CleanUp ();
 
-		void StartInit (object instance);
-
 		void InitDone (object instance);
 
 		bool IsInitializing (object injection);

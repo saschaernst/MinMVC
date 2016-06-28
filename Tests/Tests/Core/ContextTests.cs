@@ -61,7 +61,7 @@ namespace MinMVC
 		{
 			_context.Register<ITestInjection, TestInjection>();
 			var instance = new FieldInjectionTestClass();
-			_context.RegisterInstance(instance, true);
+			_context.RegisterInstance(instance);
 
 			Assert.True(_context.Has<FieldInjectionTestClass>());
 
@@ -143,12 +143,12 @@ namespace MinMVC
 			_context.Inject(instance);
 
 			Assert.True(_context.IsInitializing(instance.testInjection));
-			instance.Received(1).OnPostInject();
-			instance.DidNotReceive().OnPostInit();
+			Assert.AreEqual(1, instance.postInjects);
+			Assert.AreEqual(0, instance.postInits);
 
 			_context.InitDone(instance.testInjection);
 
-			instance.Received(1).OnPostInit();
+			Assert.AreEqual(1, instance.postInits);
 		}
 	}
 }
