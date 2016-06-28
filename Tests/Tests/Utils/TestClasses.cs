@@ -2,62 +2,56 @@
 
 namespace MinMVC
 {
-	interface ITestClass
+	public interface ITestClass
 	{
 
 	}
 
-	class TestClass : ITestClass
+	public class TestClass : ITestClass
 	{
 
 	}
 
 	[WaitForInit]
-	class InitializingTestClass : ITestClass
+	public class InitializingTestClass : ITestClass
 	{
 
 	}
 
-	class FieldInjectionTestClass
+	public class FieldInjectionTestClass
 	{
 		[Inject]
 		public ITestInjection testInjection;
 	}
 
-	class PropertyInjectionTestClass
+	public class PropertyInjectionTestClass
 	{
 		[Inject]
 		public ITestInjection testInjection { get; set; }
 	}
 
-	interface ITestInjection
+	public interface ITestInjection
 	{
 
 	}
 
-	class WaitForInitInjectingClass
+	public class WaitForInitInjectingClass
 	{
 		[InjectAndWait]
 		public InitializingTestClass testInjection;
 
-		public bool postInjectHasBeenCalled;
-
-		public bool postInitHasBeenCalled;
-
 		[PostInjection]
 		public void OnPostInject ()
 		{
-			postInjectHasBeenCalled = true;
 		}
 
 		[PostInit]
 		public void OnPostInit ()
 		{
-			postInitHasBeenCalled = true;
 		}
 	}
 
-	class TestInjection : ITestInjection
+	public class TestInjection : ITestInjection
 	{
 
 	}

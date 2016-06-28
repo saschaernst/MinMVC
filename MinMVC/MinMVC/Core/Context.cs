@@ -14,6 +14,7 @@ namespace MinMVC
 		readonly IDictionary<Type, InjectionInfo> infoMap = new Dictionary<Type, InjectionInfo>();
 		readonly IDictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
 		readonly IDictionary<Type, object> instanceCache = new Dictionary<Type, object>();
+		readonly HashSet<object> forceInjections = new HashSet<object>();
 
 		#region async init
 		readonly HashSet<object> initializingInjections = new HashSet<object>();
@@ -84,11 +85,16 @@ namespace MinMVC
 			}
 		}
 
-		public void RegisterInstance<T> (T instance)
+		public void RegisterInstance<T> (T instance, bool forceInjection = false)
 		{
 			Type key = typeof(T);
 			Register(key, key, true);
 			Cache(key, instance);
+
+			if (forceInjection) {
+				forceInjections.Add(instance);
+			}
+
 		}
 
 		void Cache<T> (Type key, T instance)
@@ -174,6 +180,9 @@ namespace MinMVC
 					instance = _parent.GetInstance(key);
 				}
 			}
+			else if (forceInjections.Contains(instance)) {
+				Inject(instance);
+			}
 
 			if (instance == null) {
 				throw new NotRegisteredException("not registered: " + key);
@@ -223,6 +232,8 @@ namespace MinMVC
 				if (waitingInjections == null) {
 					InvokeMethods(instance, info.postInits);
 				}
+
+				forceInjections.Remove(instance);
 			}
 		}
 

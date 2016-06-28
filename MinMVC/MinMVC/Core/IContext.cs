@@ -17,7 +17,7 @@ namespace MinMVC
 
 		void Register<T> (bool preventCaching = false);
 
-		void RegisterInstance<T> (T instance);
+		void RegisterInstance<T> (T instance, bool forceInjection = false);
 
 		T Get<T> (Type key = null) where T : class;
 

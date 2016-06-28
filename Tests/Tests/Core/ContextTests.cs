@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using NSubstitute;
+using NUnit.Framework;
 
 namespace MinMVC
 {
@@ -58,15 +59,16 @@ namespace MinMVC
 		[Test]
 		public void RegistersInstanceAlwaysCached ()
 		{
-			ITestClass instance = new TestClass();
-			_context.RegisterInstance(instance);
+			_context.Register<ITestInjection, TestInjection>();
+			var instance = new FieldInjectionTestClass();
+			_context.RegisterInstance(instance, true);
 
-			Assert.True(_context.Has<ITestClass>());
-			Assert.False(_context.Has<TestClass>());
+			Assert.True(_context.Has<FieldInjectionTestClass>());
 
-			var retrieved = _context.Get<ITestClass>();
+			var retrieved = _context.Get<FieldInjectionTestClass>();
 
 			Assert.AreEqual(instance, retrieved);
+			Assert.NotNull(instance.testInjection);
 		}
 
 		[Test]
@@ -137,16 +139,16 @@ namespace MinMVC
 		public void PutTaggedClassOnInitializingList ()
 		{
 			_context.Register<InitializingTestClass>();
-			_context.Register<WaitForInitInjectingClass>();
-			var instance = _context.Get<WaitForInitInjectingClass>();
+			var instance = Substitute.For<WaitForInitInjectingClass>();
+			_context.Inject(instance);
 
 			Assert.True(_context.IsInitializing(instance.testInjection));
-			Assert.True(instance.postInjectHasBeenCalled);
-			Assert.False(instance.postInitHasBeenCalled);
+			instance.Received(1).OnPostInject();
+			instance.DidNotReceive().OnPostInit();
 
 			_context.InitDone(instance.testInjection);
 
-			Assert.True(instance.postInitHasBeenCalled);
+			instance.Received(1).OnPostInit();
 		}
 	}
 }
