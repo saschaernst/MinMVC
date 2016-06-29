@@ -134,21 +134,5 @@ namespace MinMVC
 
 			Assert.NotNull(instance.testInjection);
 		}
-
-		[Test]
-		public void PutTaggedClassOnInitializingList ()
-		{
-			_context.Register<InitializingTestClass>();
-			var instance = Substitute.For<WaitForInitInjectingClass>();
-			_context.Inject(instance);
-
-			Assert.True(_context.IsInitializing(instance.testInjection));
-			Assert.AreEqual(1, instance.postInjects);
-			Assert.AreEqual(0, instance.postInits);
-
-			_context.InitDone(instance.testInjection);
-
-			Assert.AreEqual(1, instance.postInits);
-		}
 	}
 }

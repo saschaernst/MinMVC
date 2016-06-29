@@ -5,7 +5,6 @@ namespace MinMVC
 	public interface IContext
 	{
 		event Action onCleanUp;
-		event Action<object> onCheckWaitingList;
 
 		IContext parent { set; get; }
 
@@ -30,9 +29,5 @@ namespace MinMVC
 		void Inject<T> (T instance);
 
 		void CleanUp ();
-
-		void InitDone (object instance);
-
-		bool IsInitializing (object injection);
 	}
 }
