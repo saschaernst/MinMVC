@@ -17,15 +17,12 @@ namespace MinMVC
 
 		IContext _parent;
 
-		public IContext parent
-		{
-			get
-			{
+		public IContext parent {
+			get {
 				return _parent;
 			}
 
-			set
-			{
+			set {
 				if (hasParent) {
 					_parent.onCleanUp -= CleanUp;
 				}
@@ -38,10 +35,12 @@ namespace MinMVC
 			}
 		}
 
-		IContext root
-		{
-			get
-			{
+		bool hasParent {
+			get { return _parent != null; }
+		}
+
+		IContext root {
+			get {
 				IContext current = this;
 
 				while (current.parent != null) {
@@ -82,9 +81,7 @@ namespace MinMVC
 
 		public void Register (Type key, Type value, bool preventCaching = false)
 		{
-			if (!typeMap.ContainsKey(key)) {
-				typeMap[key] = value;
-
+			if (typeMap.AddNewEntry(key, value)) {
 				if (!preventCaching) {
 					Cache(key, default(object));
 				}
@@ -107,13 +104,7 @@ namespace MinMVC
 
 		void Cache<T> (Type key, T instance)
 		{
-			object cachedInstance;
-			instanceCache.TryGetValue(key, out cachedInstance);
-
-			if (cachedInstance == null) {
-				instanceCache[key] = instance;
-			}
-			else {
+			if (!instanceCache.AddNewEntry(key, instance)) {
 				throw new AlreadyRegisteredException("already cached; " + key);
 			}
 		}
@@ -136,10 +127,7 @@ namespace MinMVC
 				if (typeMap.TryGetValue(key, out value)) {
 					instance = Activator.CreateInstance(value);
 					Inject(instance);
-
-					if (instanceCache.ContainsKey(key)) {
-						instanceCache[key] = instance;
-					}
+					instanceCache.UpdateEntry(key, instance);
 				}
 				else if (hasParent) {
 					instance = _parent.GetInstance(key);
@@ -163,35 +151,26 @@ namespace MinMVC
 
 		public bool Has (Type key)
 		{
-			bool hasKey = instanceCache.ContainsKey(key) || typeMap.ContainsKey(key);
+			bool hasKey = typeMap.ContainsKey(key);
 			bool findInParent = !hasKey && hasParent;
 
 			return findInParent ? _parent.Has(key) : hasKey;
 		}
 
-		bool hasParent
-		{
-			get { return _parent != null; }
-		}
-
 		public void Inject<T> (T instance)
 		{
 			Type key = instance.GetType();
-			InjectionInfo info = infoMap.Retrieve(key, () => ParseInfo(key));
-
-			if (info != null) {
-				InjectInstances(instance, key, info.injections, BindingFlags.SetProperty | BindingFlags.SetField);
-				InvokeMethods(instance, info.postInjectionCalls);
-				forceInjections.Remove(instance);
-			}
+			var info = infoMap.Retrieve(key, () => ParseInfo(key));
+			InjectInstances(instance, key, info.injections, BindingFlags.SetProperty | BindingFlags.SetField);
+			InvokeMethods(instance, info.postInjectionCalls);
+			forceInjections.Remove(instance);
 		}
 
 		InjectionInfo ParseInfo (Type type)
 		{
-			InjectionInfo info = new InjectionInfo();
-
-			ParsePropertyAttributes(type.GetProperties(), info);
-			ParseFieldAttributes(type.GetFields(), info);
+			var info = new InjectionInfo();
+			ParsePropertyAttributes(type.GetProperties(), info.injections);
+			ParseFieldAttributes(type.GetFields(), info.injections);
 			ParsePostMethods<PostInjection>(type.GetMethods(), info.postInjectionCalls);
 
 			return info;
@@ -200,7 +179,6 @@ namespace MinMVC
 		void InjectInstances<T> (T instance, Type type, IDictionary<string, Type> injectionMap, BindingFlags flags)
 		{
 			injectionMap.Each(pair => {
-				Type injectionType = pair.Value;
 				object injection = GetInstance(pair.Value);
 				object[] param = { injection };
 
@@ -208,19 +186,28 @@ namespace MinMVC
 			});
 		}
 
-		void InvokeMethods (object instance, IEnumerable<MethodInfo> methods)
+		void InvokeMethods (object instance, IEnumerable<MethodInfo> methods, object[] param = null)
 		{
-			methods.Each(method => method.Invoke(instance, EMPTY_PARAMS));
+			methods.Each(method => method.Invoke(instance, param ?? EMPTY_PARAMS));
 		}
 
-		void ParseFieldAttributes (FieldInfo[] fields, InjectionInfo info)
+		void ParseFieldAttributes (FieldInfo[] fields, IDictionary<string, Type> result)
 		{
-			fields.Each(field => ParseAttributes(field, field.FieldType, info.injections));
+			fields.Each(field => ParseAttributes(field, field.FieldType, result));
 		}
 
-		void ParsePropertyAttributes (PropertyInfo[] properties, InjectionInfo info)
+		void ParsePropertyAttributes (PropertyInfo[] properties, IDictionary<string, Type> result)
 		{
-			properties.Each(property => ParseAttributes(property, property.PropertyType, info.injections));
+			properties.Each(property => ParseAttributes(property, property.PropertyType, result));
+		}
+
+		void ParseAttributes (MemberInfo memberInfo, Type type, IDictionary<string, Type> result)
+		{
+			memberInfo.GetCustomAttributes(true).Each(attribute => {
+				if (attribute is Inject) {
+					result[memberInfo.Name] = type;
+				}
+			});
 		}
 
 		void ParsePostMethods<T> (IEnumerable<MethodInfo> methods, HashSet<MethodInfo> postMethods) where T : Attribute
@@ -230,15 +217,6 @@ namespace MinMVC
 					postMethods.Add(method);
 				}
 			}));
-		}
-
-		void ParseAttributes (MemberInfo memberInfo, Type type, IDictionary<string, Type> injections)
-		{
-			memberInfo.GetCustomAttributes(true).Each(attribute => {
-				if (attribute is Inject) {
-					injections[memberInfo.Name] = type;
-				}
-			});
 		}
 	}
 

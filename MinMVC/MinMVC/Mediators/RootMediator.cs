@@ -5,12 +5,12 @@
 		[Inject]
 		public IMediators mediators;
 
-		protected override void Register()
+		protected override void Register ()
 		{
 			_view.mediate = mediators.Mediate;
 		}
 
-		protected override void Unregister()
+		protected override void Unregister ()
 		{
 			_view.mediate = null;
 		}

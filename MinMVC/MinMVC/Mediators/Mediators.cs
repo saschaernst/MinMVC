@@ -10,12 +10,12 @@ namespace MinMVC
 
 		readonly IDictionary<Type, HashSet<Type>> _viewMediatorsMap = new Dictionary<Type, HashSet<Type>>();
 
-		public void Map<TViewInterface, TMediator>() where TViewInterface : IMediatedView where TMediator : IMediator
+		public void Map<TViewInterface, TMediator> () where TViewInterface : IMediatedView where TMediator : IMediator
 		{
 			Type viewType = typeof(TViewInterface);
-			HashSet<Type> mediatorTypes = _viewMediatorsMap.Retrieve (viewType);
+			HashSet<Type> mediatorTypes = _viewMediatorsMap.Retrieve(viewType);
 
-			if(!context.Has<TMediator>()) {
+			if (!context.Has<TMediator>()) {
 				context.Register<TMediator>(true);
 			}
 
@@ -23,7 +23,7 @@ namespace MinMVC
 			mediatorTypes.Add(mediatorType);
 		}
 
-		public void Mediate<T>(T view) where T : IMediatedView
+		public void Mediate<T> (T view) where T : IMediatedView
 		{
 			Type viewType = view.GetType();
 			bool hasMediators = Create(view, viewType);
@@ -32,19 +32,20 @@ namespace MinMVC
 				hasMediators |= Create(view, viewInterface);
 			});
 
-			if(hasMediators) {
+			if (hasMediators) {
 				view.OnMediation();
-			} else {
+			}
+			else {
 				throw new NoMediatorMappingException("no mediators for " + viewType);
 			}
 		}
 
-		bool Create<T>(T view, Type viewType) where T : IMediatedView
+		bool Create<T> (T view, Type viewType) where T : IMediatedView
 		{
 			HashSet<Type> mediatorTypes;
 			bool hasMediators = _viewMediatorsMap.TryGetValue(viewType, out mediatorTypes);
 
-			if(hasMediators) {
+			if (hasMediators) {
 				mediatorTypes.Each(mediatorType => context.Get<IMediator>(mediatorType).Init(view));
 			}
 
@@ -54,7 +55,7 @@ namespace MinMVC
 
 	public class NoMediatorMappingException : Exception
 	{
-		public NoMediatorMappingException(string message) : base(message)
+		public NoMediatorMappingException (string message) : base(message)
 		{
 		}
 	}

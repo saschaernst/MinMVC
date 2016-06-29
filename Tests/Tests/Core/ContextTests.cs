@@ -1,5 +1,4 @@
-﻿using NSubstitute;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace MinMVC
 {
@@ -25,6 +24,16 @@ namespace MinMVC
 			_context.Register<TestClass>();
 
 			Assert.True(_context.Has<TestClass>());
+		}
+
+		[Test]
+		public void CachesRegisteredClass ()
+		{
+			_context.Register<TestClass>();
+			var instanceA = _context.Get<TestClass>();
+			var instanceB = _context.Get<TestClass>();
+
+			Assert.AreEqual(instanceA, instanceB);
 		}
 
 		[Test]
