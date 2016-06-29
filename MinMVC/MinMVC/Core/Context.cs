@@ -17,18 +17,22 @@ namespace MinMVC
 		readonly HashSet<object> forceInjections = new HashSet<object>();
 
 		#region async init
-		readonly HashSet<object> initializingInjections = new HashSet<object>();
+
+		readonly HashSet<object> initializingInstances = new HashSet<object>();
 		readonly IDictionary<object, HashSet<object>> instances2Injections = new Dictionary<object, HashSet<object>>();
 		readonly IDictionary<object, HashSet<object>> injections2Instances = new Dictionary<object, HashSet<object>>();
 		readonly IDictionary<object, HashSet<MethodInfo>> instances2PostInits = new Dictionary<object, HashSet<MethodInfo>>();
+
 		#endregion
 
 		IContext _parent;
 
-		public IContext parent
-		{
-			set
-			{
+		public IContext parent {
+			get {
+				return _parent;
+			}
+
+			set {
 				if (hasParent) {
 					_parent.onCheckWaitingList -= CheckWaitingList;
 					_parent.onCleanUp -= CleanUp;
@@ -40,6 +44,18 @@ namespace MinMVC
 					_parent.onCheckWaitingList += CheckWaitingList;
 					_parent.onCleanUp += CleanUp;
 				}
+			}
+		}
+
+		IContext root {
+			get {
+				IContext current = this;
+
+				while (current.parent != null) {
+					current = current.parent;
+				}
+
+				return current;
 			}
 		}
 
@@ -79,11 +95,11 @@ namespace MinMVC
 				if (!preventCaching) {
 					Cache(key, default(object));
 				}
-			}
-			else {
+			} else {
 				throw new AlreadyRegisteredException("already registered; " + key);
 			}
 		}
+
 		public void RegisterInstance<T> (T instance, bool preventInjection = false)
 		{
 			Type key = typeof(T);
@@ -102,48 +118,55 @@ namespace MinMVC
 
 			if (cachedInstance == null) {
 				instanceCache[key] = instance;
-			}
-			else {
+			} else {
 				throw new AlreadyRegisteredException("already cached; " + key);
 			}
 		}
 
 		#region async init
-		public void InitDone (object injection)
+
+		public void InitDone (object initializedInstance)
 		{
-			if (!initializingInjections.Remove(injection)) {
-				throw new InitializingException(injection + " is not initializing");
+			if (!initializingInstances.Remove(initializedInstance)) {
+				throw new InitializingException(initializedInstance + " is not initializing");
 			}
 
-			CheckWaitingList(injection);
+			CheckWaitingList(initializedInstance);
 		}
 
-		void CheckWaitingList (object injection)
+		void CheckWaitingList (object initializedInstance)
 		{
-			if (injections2Instances.ContainsKey(injection)) {
-				var instances = injections2Instances.Withdraw(injection);
+			if (injections2Instances.ContainsKey(initializedInstance)) {
+				var instances = injections2Instances.Withdraw(initializedInstance);
 
 				instances.Each(instance => {
 					var injections = instances2Injections[instance];
-					injections.Remove(injection);
+					injections.Remove(initializedInstance);
 
 					if (injections.IsEmpty()) {
 						instances2Injections.Remove(instance);
 						var postInits = instances2PostInits.Withdraw(instance);
-						InvokeMethods(instance, postInits);
+						InvokePostInits(instance, postInits);
 					}
 				});
 			}
 
-			onCheckWaitingList(injection);
+			onCheckWaitingList(initializedInstance);
+		}
+
+		void InvokePostInits (object instance, HashSet<MethodInfo> postInits)
+		{
+			InvokeMethods(instance, postInits);
+			InitDone(instance);
 		}
 
 		public bool IsInitializing (object injection)
 		{
-			bool isInitializing = initializingInjections.Contains(injection);
+			bool isInitializing = initializingInstances.Contains(injection);
 
 			return !isInitializing && hasParent ? _parent.IsInitializing(injection) : isInitializing;
 		}
+
 		#endregion
 
 		public T Get<T> (Type key = null) where T : class
@@ -168,12 +191,10 @@ namespace MinMVC
 					if (instanceCache.ContainsKey(key)) {
 						instanceCache[key] = instance;
 					}
-				}
-				else if (hasParent) {
+				} else if (hasParent) {
 					instance = _parent.GetInstance(key);
 				}
-			}
-			else if (forceInjections.Contains(instance)) {
+			} else if (forceInjections.Contains(instance)) {
 				Inject(instance);
 			}
 
@@ -197,8 +218,7 @@ namespace MinMVC
 			return findInParent ? _parent.Has(key) : hasKey;
 		}
 
-		bool hasParent
-		{
+		bool hasParent {
 			get { return _parent != null; }
 		}
 
@@ -216,14 +236,14 @@ namespace MinMVC
 					waitingInjections.Each(injection => injections2Instances.Retrieve(injection).Add(instance));
 				}
 
-				if (info.waitForInit) {
-					initializingInjections.Add(instance);
+				if (info.waitForInit || info.postInits.Count > 0) {
+					initializingInstances.Add(instance);
 				}
 
 				InvokeMethods(instance, info.postInjections);
 
 				if (waitingInjections == null) {
-					InvokeMethods(instance, info.postInits);
+					InvokePostInits(instance, info.postInits);
 				}
 
 				forceInjections.Remove(instance);
@@ -321,19 +341,34 @@ namespace MinMVC
 	}
 
 	[AttributeUsage(AttributeTargets.Class)]
-	public class WaitForInit : Attribute { }
+	public class WaitForInit : Attribute
+	{
+
+	}
 
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-	public class Inject : Attribute { }
+	public class Inject : Attribute
+	{
+
+	}
 
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-	public class ForceInject : Inject { }
+	public class ForceInject : Inject
+	{
+
+	}
 
 	[AttributeUsage(AttributeTargets.Method)]
-	public class PostInjection : Attribute { }
+	public class PostInjection : Attribute
+	{
+
+	}
 
 	[AttributeUsage(AttributeTargets.Method)]
-	public class PostInit : Attribute { }
+	public class PostInit : Attribute
+	{
+
+	}
 
 	public class NotRegisteredException : Exception
 	{

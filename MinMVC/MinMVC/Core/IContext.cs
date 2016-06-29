@@ -7,7 +7,7 @@ namespace MinMVC
 		event Action onCleanUp;
 		event Action<object> onCheckWaitingList;
 
-		IContext parent { set; }
+		IContext parent { set; get; }
 
 		void Register<TInterface, TClass> (bool preventCaching = false);
 
