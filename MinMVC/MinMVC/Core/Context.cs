@@ -1,11 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngineInternal;
 
 namespace MinMVC
 {
 	public class Context : IContext
 	{
+		static IContext _root;
+
+		public static IContext root {
+			get {
+				return _root = _root ?? new Context();
+			}
+		}
+
 		public event Action onCleanUp = delegate { };
 
 		static readonly object[] EMPTY_PARAMS = new object[0];
@@ -39,21 +48,22 @@ namespace MinMVC
 			get { return _parent != null; }
 		}
 
-		IContext root {
-			get {
-				IContext current = this;
+		//IContext root {
+		//	get {
+		//		IContext current = this;
 
-				while (current.parent != null) {
-					current = current.parent;
-				}
+		//		while (current.parent != null) {
+		//			current = current.parent;
+		//		}
 
-				return current;
-			}
-		}
+		//		return current;
+		//	}
+		//}
 
-		public Context ()
+		public Context (IContext p = null)
 		{
 			RegisterInstance<IContext>(this);
+			parent = p;
 		}
 
 		public void CleanUp ()
@@ -71,6 +81,7 @@ namespace MinMVC
 		{
 			Type key = typeof(TInterface);
 			Type value = typeof(TClass);
+
 			Register(key, value, preventCaching);
 		}
 
@@ -109,7 +120,7 @@ namespace MinMVC
 			}
 		}
 
-		public T Get<T> (Type key = null) where T : class
+		public T Get<T> (Type key = null)
 		{
 			key = key ?? typeof(T);
 

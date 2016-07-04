@@ -8,17 +8,17 @@ namespace MinMVC
 
 		IContext parent { set; get; }
 
-		void Register<TInterface, TClass> (bool preventCaching = false);
-
 		void Register (Type type, bool preventCaching = false);
 
 		void Register (Type key, Type value, bool preventCaching = false);
 
 		void Register<T> (bool preventCaching = false);
 
-		void RegisterInstance<T> (T instance, bool forceInjection = false);
+		void Register<TInterface, TClass> (bool preventCaching = false);
 
-		T Get<T> (Type key = null) where T : class;
+		void RegisterInstance<T> (T instance, bool preventInjection = false);
+
+		T Get<T> (Type key = null);
 
 		object GetInstance (Type key);
 
