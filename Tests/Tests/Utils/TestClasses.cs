@@ -34,6 +34,18 @@ namespace MinMVC
 
 	}
 
+	public class CircularClass1
+	{
+		[Inject]
+		public CircularClass2 circular;
+	}
+
+	public class CircularClass2
+	{
+		[Inject]
+		public CircularClass1 circular;
+	}
+
 	public class TestMediator : Mediator<IMediatedView>
 	{
 		public IDispatcher dispatcher;

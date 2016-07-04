@@ -137,8 +137,8 @@ namespace MinMVC
 
 				if (typeMap.TryGetValue(key, out value)) {
 					instance = Activator.CreateInstance(value);
-					Inject(instance);
 					instanceCache.UpdateEntry(key, instance);
+					Inject(instance);
 				}
 				else if (hasParent) {
 					instance = _parent.GetInstance(key);

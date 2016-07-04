@@ -43,6 +43,9 @@ namespace MinMVC
 
 			Assert.True(context.Has<ITestClass>());
 			Assert.False(context.Has<TestClass>());
+
+			var instance = context.Get<ITestClass>();
+			Assert.NotNull(instance);
 		}
 
 		[Test]
@@ -144,6 +147,16 @@ namespace MinMVC
 			context.Inject(instance);
 
 			Assert.NotNull(instance.testInjection);
+		}
+
+		[Test]
+		public void InjectsInCircle ()
+		{
+			context.Register<CircularClass1>();
+			context.Register<CircularClass2>();
+
+			var instance1 = context.Get<CircularClass1>();
+			Assert.NotNull(instance1);
 		}
 	}
 }
