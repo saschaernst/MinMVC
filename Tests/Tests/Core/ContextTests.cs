@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 
 namespace MinMVC
 {
@@ -157,6 +158,21 @@ namespace MinMVC
 
 			var instance1 = context.Get<CircularClass1>();
 			Assert.NotNull(instance1);
+		}
+
+		[Test]
+		public void CleansupContext ()
+		{
+			context.Register<CleanupClass>();
+			var instance = context.Get<CleanupClass>();
+
+			Assert.False(instance.isCleanedUp);
+
+			context.CleanUp();
+
+			Assert.True(instance.isCleanedUp);
+
+			Assert.Throws<NullReferenceException>(context.CleanUp);
 		}
 	}
 }

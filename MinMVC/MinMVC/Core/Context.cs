@@ -69,7 +69,14 @@ namespace MinMVC
 		public void CleanUp ()
 		{
 			parent = null;
+
 			onCleanUp();
+			onCleanUp = null;
+
+			infoMap.Clear();
+			typeMap.Clear();
+			instanceCache.Clear();
+			forceInjections.Clear();
 		}
 
 		public void Register<T> (bool preventCaching = false)
@@ -174,6 +181,8 @@ namespace MinMVC
 			var info = infoMap.Retrieve(key, () => ParseInfo(key));
 			InjectInstances(instance, key, info.injections, BindingFlags.SetProperty | BindingFlags.SetField);
 			InvokeMethods(instance, info.postInjectionCalls);
+			RegisterCleanups(instance, info.cleanupCalls);
+
 			forceInjections.Remove(instance);
 		}
 
@@ -182,7 +191,8 @@ namespace MinMVC
 			var info = new InjectionInfo();
 			ParsePropertyAttributes(type.GetProperties(), info.injections);
 			ParseFieldAttributes(type.GetFields(), info.injections);
-			ParsePostMethods<PostInjection>(type.GetMethods(), info.postInjectionCalls);
+			ParseMethods<PostInjection>(type.GetMethods(), info.postInjectionCalls);
+			ParseMethods<Cleanup>(type.GetMethods(), info.cleanupCalls);
 
 			return info;
 		}
@@ -200,6 +210,11 @@ namespace MinMVC
 		void InvokeMethods (object instance, IEnumerable<MethodInfo> methods, object[] param = null)
 		{
 			methods.Each(method => method.Invoke(instance, param ?? EMPTY_PARAMS));
+		}
+
+		void RegisterCleanups<T> (T instance, HashSet<MethodInfo> methods)
+		{
+			methods.Each(method => onCleanUp += () => method.Invoke(instance, EMPTY_PARAMS));
 		}
 
 		void ParseFieldAttributes (FieldInfo[] fields, IDictionary<string, Type> result)
@@ -221,7 +236,7 @@ namespace MinMVC
 			});
 		}
 
-		void ParsePostMethods<T> (IEnumerable<MethodInfo> methods, HashSet<MethodInfo> postMethods) where T : Attribute
+		void ParseMethods<T> (IEnumerable<MethodInfo> methods, HashSet<MethodInfo> postMethods) where T : Attribute
 		{
 			methods.Each(method => method.GetCustomAttributes(true).Each(attribute => {
 				if (attribute is T) {
@@ -233,8 +248,9 @@ namespace MinMVC
 
 	public class InjectionInfo
 	{
-		public HashSet<MethodInfo> postInjectionCalls = new HashSet<MethodInfo>();
 		public IDictionary<string, Type> injections = new Dictionary<string, Type>();
+		public HashSet<MethodInfo> postInjectionCalls = new HashSet<MethodInfo>();
+		public HashSet<MethodInfo> cleanupCalls = new HashSet<MethodInfo>();
 	}
 
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
@@ -245,6 +261,12 @@ namespace MinMVC
 
 	[AttributeUsage(AttributeTargets.Method)]
 	public class PostInjection : Attribute
+	{
+
+	}
+
+	[AttributeUsage(AttributeTargets.Method)]
+	public class Cleanup : Attribute
 	{
 
 	}

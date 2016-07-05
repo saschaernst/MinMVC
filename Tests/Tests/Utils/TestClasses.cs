@@ -34,6 +34,17 @@ namespace MinMVC
 
 	}
 
+	public class CleanupClass
+	{
+		public bool isCleanedUp;
+
+		[Cleanup]
+		public void Cleanup ()
+		{
+			isCleanedUp = true;
+		}
+	}
+
 	public class CircularClass1
 	{
 		[Inject]
