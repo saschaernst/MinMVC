@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngineInternal;
 
 namespace MinMVC
 {
@@ -48,18 +47,6 @@ namespace MinMVC
 			get { return _parent != null; }
 		}
 
-		//IContext root {
-		//	get {
-		//		IContext current = this;
-
-		//		while (current.parent != null) {
-		//			current = current.parent;
-		//		}
-
-		//		return current;
-		//	}
-		//}
-
 		public Context (IContext p = null)
 		{
 			RegisterInstance<IContext>(this);
@@ -77,6 +64,10 @@ namespace MinMVC
 			typeMap.Clear();
 			instanceCache.Clear();
 			forceInjections.Clear();
+
+			if (_root == this) {
+				_root = null;
+			}
 		}
 
 		public void Register<T> (bool preventCaching = false)
