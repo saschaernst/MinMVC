@@ -7,12 +7,12 @@
 
 		protected override void Register ()
 		{
-			_view.mediate = mediators.Mediate;
+			view.mediate = mediators.Mediate;
 		}
 
 		protected override void Unregister ()
 		{
-			_view.mediate = null;
+			view.mediate = null;
 		}
 	}
 }

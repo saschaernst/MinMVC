@@ -6,33 +6,33 @@ namespace MinMVC
 {
 	public class MediatorTests
 	{
-		IMediatedView _view;
-		TestMediator _mediator;
+		IMediatedView view;
+		TestMediator mediator;
 
 		[SetUp]
-		public void Setup()
+		public void Setup ()
 		{
-			_view = Substitute.For<IMediatedView>();
-			_mediator = new TestMediator();
-			_mediator.dispatcher = Substitute.For<IDispatcher>();
-			_mediator.Init(_view);
+			view = Substitute.For<IMediatedView>();
+			mediator = new TestMediator();
+			mediator.dispatcher = Substitute.For<IDispatcher>();
+			mediator.Init(view);
 		}
 
 		[Test]
-		public void RegistersListeners()
+		public void RegistersListeners ()
 		{
-			_mediator.dispatcher.dispatch();
+			mediator.dispatcher.dispatch();
 
-			_view.Received(1).Remove();
+			view.Received(1).Remove();
 		}
 
 		[Test]
-		public void UnregistersOnViewRemoval()
+		public void UnregistersOnViewRemoval ()
 		{
-			_view.When(v => v.Remove()).Do(v => _view.onRemove += Raise.Event<Action>());
-			_mediator.dispatcher.dispatch();
+			view.When(v => v.Remove()).Do(v => view.onRemove += Raise.Event<Action>());
+			mediator.dispatcher.dispatch();
 
-			Assert.Null(_mediator.dispatcher);
+			Assert.Null(mediator.dispatcher);
 		}
 	}
 }

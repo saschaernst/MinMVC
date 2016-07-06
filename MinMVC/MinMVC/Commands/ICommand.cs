@@ -6,21 +6,21 @@
 
 		bool isRetained { get; }
 
-		void Cancel();
+		void Cancel ();
 	}
 
 	public interface ICommand : IBaseCommand
 	{
-		void Execute();
+		void Execute ();
 	}
 
 	public interface ICommand<T> : IBaseCommand
 	{
-		void Execute(T param);
+		void Execute (T param);
 	}
 
 	public interface ICommand<TParam0, TParam1> : IBaseCommand
 	{
-		void Execute(TParam0 param0, TParam1 param1);
+		void Execute (TParam0 param0, TParam1 param1);
 	}
 }

@@ -5,33 +5,33 @@ namespace MinMVC
 {
 	public class NamedDispatcherTests
 	{
-		NamedDispatcher _dispatcher;
-		ICommands _commands;
+		NamedDispatcher dispatcher;
+		ICommands commands;
 
 		[SetUp]
-		public void Setup()
+		public void Setup ()
 		{
-			_dispatcher = new NamedDispatcher();
-			_commands = _dispatcher.commands = Substitute.For<ICommands>();
+			dispatcher = new NamedDispatcher();
+			commands = dispatcher.commands = Substitute.For<ICommands>();
 		}
 
 		[Test]
-		public void RegistersNamesToCommands()
+		public void RegistersNamesToCommands ()
 		{
-			_dispatcher.Register<TestCommand>("bla");
-			_commands.Received().Get<TestCommand>();
+			dispatcher.Register<TestCommand>("bla");
+			commands.Received().Get<TestCommand>();
 		}
 
 		[Test]
-		public void ExecutesCommandsByRegisteredName()
+		public void ExecutesCommandsByRegisteredName ()
 		{
 			var cache = Substitute.For<ICommandCache>();
-			_commands.Get<TestCommand>().Returns(cache);
+			commands.Get<TestCommand>().Returns(cache);
 			const string name = "eventName";
-			_dispatcher.Register<TestCommand>(name);
-			_dispatcher.Execute(name);
+			dispatcher.Register<TestCommand>(name);
+			dispatcher.Execute(name);
 
-			_commands.Received(1).Get<TestCommand>();
+			commands.Received(1).Get<TestCommand>();
 			cache.Received(1).Execute();
 		}
 	}

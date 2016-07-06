@@ -63,12 +63,12 @@ namespace MinMVC
 
 		protected override void Register ()
 		{
-			dispatcher.dispatch += _view.Remove;
+			dispatcher.dispatch += view.Remove;
 		}
 
 		protected override void Unregister ()
 		{
-			dispatcher.dispatch -= _view.Remove;
+			dispatcher.dispatch -= view.Remove;
 			dispatcher = null;
 		}
 	}

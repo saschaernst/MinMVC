@@ -5,31 +5,31 @@ namespace MinMVC
 {
 	public class CommandsTests
 	{
-		Commands _commands;
+		Commands commands;
 
 		[SetUp]
-		public void Setup()
+		public void Setup ()
 		{
-			_commands = new Commands();
-			_commands.context = Substitute.For<IContext>();
+			commands = new Commands();
+			commands.context = Substitute.For<IContext>();
 		}
 
 		[Test]
-		public void GetsCacheByType()
+		public void GetsCacheByType ()
 		{
-			var cache = _commands.Get<TestCommand>();
+			var cache = commands.Get<TestCommand>();
 
 			Assert.NotNull(cache);
-			Assert.True(_commands.Has<TestCommand>());
+			Assert.True(commands.Has<TestCommand>());
 		}
 
 		[Test]
-		public void RemovesCacheByType()
+		public void RemovesCacheByType ()
 		{
-			_commands.Get<TestCommand>();
-			_commands.Remove<TestCommand>();
+			commands.Get<TestCommand>();
+			commands.Remove<TestCommand>();
 
-			Assert.False(_commands.Has<TestCommand>());
+			Assert.False(commands.Has<TestCommand>());
 		}
 	}
 }

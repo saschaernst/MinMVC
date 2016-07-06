@@ -8,43 +8,43 @@ namespace MinMVC
 		[Inject]
 		public IContext context;
 
-		readonly IDictionary<Type, ICommandCache> _caches = new Dictionary<Type, ICommandCache>();
+		readonly IDictionary<Type, ICommandCache> caches = new Dictionary<Type, ICommandCache>();
 
 		[PostInjection]
-		public void Init()
+		public void Init ()
 		{
 			context.onCleanUp += CleanUp;
 		}
 
-		void CleanUp()
+		void CleanUp ()
 		{
 			context.onCleanUp -= CleanUp;
-			_caches.Values.Each(cache => cache.CleanUp());
-			_caches.Clear();
+			caches.Values.Each(cache => cache.CleanUp());
+			caches.Clear();
 		}
 
-		public ICommandCache Get<T>(bool init = false) where T : class, IBaseCommand, new()
+		public ICommandCache Get<T> (bool init = false) where T : class, IBaseCommand, new()
 		{
 			Type type = typeof(T);
-			ICommandCache cache = _caches.Retrieve (type, () => new CommandCache<T>(context, init));
+			ICommandCache cache = caches.Retrieve(type, () => new CommandCache<T>(context));
 
 			return cache;
 		}
 
-		public bool Has<T>() where T : class, IBaseCommand, new()
+		public bool Has<T> () where T : class, IBaseCommand, new()
 		{
 			Type type = typeof(T);
 
-			return _caches.ContainsKey(type);
+			return caches.ContainsKey(type);
 		}
 
-		public void Remove<T>() where T : class, IBaseCommand, new()
+		public void Remove<T> () where T : class, IBaseCommand, new()
 		{
 			Type type = typeof(T);
 			ICommandCache cache;
 
-			if(_caches.TryGetValue(type, out cache)) {
-				_caches.Remove(type);
+			if (caches.TryGetValue(type, out cache)) {
+				caches.Remove(type);
 				cache.CleanUp();
 			}
 		}

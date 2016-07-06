@@ -11,7 +11,7 @@ namespace MinMVC
 			var context = Substitute.For<IContext>();
 			var command = Substitute.For<TestCommand>();
 			context.Get<TestCommand>().Returns(command);
-			var cache = new CommandCache<TestCommand>(context, false);
+			var cache = new CommandCache<TestCommand>(context);
 			cache.Execute();
 
 			context.Received(1).Register<TestCommand>(true);

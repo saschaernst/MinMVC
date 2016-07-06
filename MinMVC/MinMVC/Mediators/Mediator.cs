@@ -2,26 +2,26 @@
 {
 	public abstract class Mediator<T> : IMediator where T : class, IMediatedView
 	{
-		protected T _view;
+		protected T view;
 
-		public void Init(IMediatedView view)
+		public void Init (IMediatedView v)
 		{
-			_view = (T)view;
-			_view.onRemove += Remove;
+			view = (T)v;
+			view.onRemove += Remove;
 
 			Register();
 		}
 
-		protected abstract void Register();
+		protected abstract void Register ();
 
-		protected void Remove()
+		protected void Remove ()
 		{
 			Unregister();
 
-			_view.onRemove -= Remove;
-			_view = null;
+			view.onRemove -= Remove;
+			view = null;
 		}
 
-		protected abstract void Unregister();
+		protected abstract void Unregister ();
 	}
 }
