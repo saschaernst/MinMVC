@@ -6,12 +6,28 @@ namespace MinMVC
 {
 	public class Context : IContext
 	{
-		static IContext _root;
+		public const string ROOT = "root";
 
 		public static IContext root {
 			get {
-				return _root = _root ?? new Context();
+				if (!contexts.ContainsKey(ROOT)) {
+					Add(ROOT);
+				}
+
+				return Get(ROOT);
 			}
+		}
+
+		readonly static IDictionary<string, IContext> contexts = new Dictionary<string, IContext>();
+
+		public static IContext Get (string id)
+		{
+			return contexts[id];
+		}
+
+		public static IContext Add (string id, IContext context = null)
+		{
+			return contexts[id] = context ?? new Context();
 		}
 
 		public event Action onCleanUp = delegate { };
@@ -65,9 +81,7 @@ namespace MinMVC
 			instanceCache.Clear();
 			forceInjections.Clear();
 
-			if (_root == this) {
-				_root = null;
-			}
+			contexts.Clear();
 		}
 
 		public void Register<T> (bool preventCaching = false)
