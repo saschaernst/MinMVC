@@ -45,6 +45,20 @@ namespace MinMVC
 		}
 	}
 
+	public class PostInjectionClass
+	{
+		[Inject]
+		public ITestInjection testInjection;
+
+		public bool isPostInjected;
+
+		[PostInjection]
+		public void PostInjection ()
+		{
+			isPostInjected = true;
+		}
+	}
+
 	public class CircularClass1
 	{
 		[Inject]

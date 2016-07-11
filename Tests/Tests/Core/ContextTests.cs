@@ -155,9 +155,19 @@ namespace MinMVC
 		{
 			context.Register<CircularClass1>();
 			context.Register<CircularClass2>();
-
 			var instance1 = context.Get<CircularClass1>();
+
 			Assert.NotNull(instance1);
+		}
+
+		[Test]
+		public void CallsPostInjection ()
+		{
+			context.Register<ITestInjection, TestInjection>();
+			context.Register<PostInjectionClass>();
+			var instance = context.Get<PostInjectionClass>();
+
+			Assert.True(instance.isPostInjected);
 		}
 
 		[Test]
@@ -171,7 +181,6 @@ namespace MinMVC
 			context.CleanUp();
 
 			Assert.True(instance.isCleanedUp);
-
 			Assert.Throws<NullReferenceException>(context.CleanUp);
 		}
 	}
