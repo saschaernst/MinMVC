@@ -27,7 +27,7 @@ namespace MinMVC
 
 		public static IContext Add (string id, IContext context = null)
 		{
-			return contexts[id] = context ?? new Context();
+			return contexts[id] = context ?? new Context(id);
 		}
 
 		public event Action onCleanUp = delegate { };
@@ -38,6 +38,8 @@ namespace MinMVC
 		readonly IDictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
 		readonly IDictionary<Type, object> instanceCache = new Dictionary<Type, object>();
 		readonly HashSet<object> forceInjections = new HashSet<object>();
+
+		public string id { get; private set; }
 
 		IContext _parent;
 
@@ -63,8 +65,9 @@ namespace MinMVC
 			get { return _parent != null; }
 		}
 
-		public Context (IContext p = null)
+		public Context (string id = ROOT, IContext p = null)
 		{
+			this.id = id;
 			RegisterInstance<IContext>(this);
 			parent = p;
 		}
@@ -81,7 +84,7 @@ namespace MinMVC
 			instanceCache.Clear();
 			forceInjections.Clear();
 
-			contexts.Clear();
+			contexts.Remove(id);
 		}
 
 		public void Register<T> (bool preventCaching = false)
