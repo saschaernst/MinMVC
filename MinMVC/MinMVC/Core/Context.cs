@@ -184,9 +184,18 @@ namespace MinMVC
 		{
 			Type key = instance.GetType();
 			var info = infoMap.Retrieve(key, () => ParseInfo(key));
-			InjectInstances(instance, key, info.injections, BindingFlags.SetProperty | BindingFlags.SetField);
-			InvokeMethods(instance, info.postInjectionCalls);
-			RegisterCleanups(instance, info.cleanupCalls);
+
+			if (info.HasInjections()) {
+				InjectInstances(instance, key, info.GetInjections(), BindingFlags.SetProperty | BindingFlags.SetField);
+			}
+
+			if (info.HasCalls<PostInjection>()) {
+				InvokeMethods(instance, info.GetCalls<PostInjection>());
+			}
+
+			if (info.HasCalls<Cleanup>()) {
+				RegisterCleanups(instance, info.GetCalls<Cleanup>());
+			}
 
 			forceInjections.Remove(instance);
 		}
@@ -194,10 +203,10 @@ namespace MinMVC
 		InjectionInfo ParseInfo (Type type)
 		{
 			var info = new InjectionInfo();
-			ParsePropertyAttributes(type.GetProperties(), info.injections);
-			ParseFieldAttributes(type.GetFields(), info.injections);
-			ParseMethods<PostInjection>(type.GetMethods(), info.postInjectionCalls);
-			ParseMethods<Cleanup>(type.GetMethods(), info.cleanupCalls);
+			ParsePropertyAttributes(type, info);
+			ParseFieldAttributes(type, info);
+			ParseMethodAttributes<PostInjection>(type, info);
+			ParseMethodAttributes<Cleanup>(type, info);
 
 			return info;
 		}
@@ -222,30 +231,34 @@ namespace MinMVC
 			methods.Each(method => onCleanUp += () => method.Invoke(instance, EMPTY_PARAMS));
 		}
 
-		void ParseFieldAttributes (FieldInfo[] fields, IDictionary<string, Type> result)
+		void ParseFieldAttributes (Type type, InjectionInfo info)
 		{
-			fields.Each(field => ParseAttributes(field, field.FieldType, result));
+			type.GetFields().Each(field => ParseAttributes(field, field.FieldType, info));
 		}
 
-		void ParsePropertyAttributes (PropertyInfo[] properties, IDictionary<string, Type> result)
+		void ParsePropertyAttributes (Type type, InjectionInfo info)
 		{
-			properties.Each(property => ParseAttributes(property, property.PropertyType, result));
+			type.GetProperties().Each(property => ParseAttributes(property, property.PropertyType, info));
 		}
 
-		void ParseAttributes (MemberInfo memberInfo, Type type, IDictionary<string, Type> result)
+		void ParseAttributes (MemberInfo memberInfo, Type type, InjectionInfo info)
 		{
 			memberInfo.GetCustomAttributes(true).Each(attribute => {
 				if (attribute is Inject) {
-					result[memberInfo.Name] = type;
+					info.AddInjection(memberInfo.Name, type);
 				}
 			});
 		}
 
-		void ParseMethods<T> (IEnumerable<MethodInfo> methods, HashSet<MethodInfo> postMethods) where T : Attribute
+		void ParseMethodAttributes<T> (Type type, InjectionInfo info) where T : Attribute
 		{
+			var methods = type.GetMethods();
+			HashSet<MethodInfo> taggedMethods = null;
+
 			methods.Each(method => method.GetCustomAttributes(true).Each(attribute => {
 				if (attribute is T) {
-					postMethods.Add(method);
+					taggedMethods = taggedMethods ?? info.GetCalls<T>();
+					taggedMethods.Add(method);
 				}
 			}));
 		}
@@ -253,9 +266,36 @@ namespace MinMVC
 
 	public class InjectionInfo
 	{
-		public IDictionary<string, Type> injections = new Dictionary<string, Type>();
-		public HashSet<MethodInfo> postInjectionCalls = new HashSet<MethodInfo>();
-		public HashSet<MethodInfo> cleanupCalls = new HashSet<MethodInfo>();
+		IDictionary<string, Type> injections;
+		IDictionary<Type, HashSet<MethodInfo>> calls;
+
+		public bool HasInjections ()
+		{
+			return injections != null;
+		}
+
+		public void AddInjection (string key, Type value)
+		{
+			injections = injections ?? new Dictionary<string, Type>();
+			injections[key] = value;
+		}
+
+		public IDictionary<string, Type> GetInjections ()
+		{
+			return injections;
+		}
+
+		public HashSet<MethodInfo> GetCalls<T> () where T : Attribute
+		{
+			calls = calls ?? new Dictionary<Type, HashSet<MethodInfo>>();
+
+			return calls.Retrieve(typeof(T));
+		}
+
+		public bool HasCalls<T> () where T : Attribute
+		{
+			return calls != null && calls.ContainsKey(typeof(T));
+		}
 	}
 
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
