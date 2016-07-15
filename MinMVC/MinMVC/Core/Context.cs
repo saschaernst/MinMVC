@@ -10,10 +10,6 @@ namespace MinMVC
 
 		public static IContext root {
 			get {
-				if (!contexts.ContainsKey(ROOT)) {
-					Add(ROOT);
-				}
-
 				return Get(ROOT);
 			}
 		}
