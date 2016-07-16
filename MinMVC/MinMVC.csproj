@@ -56,6 +56,9 @@
     <Compile Include="MinMVC\Mediators\RootMediator.cs" />
     <Compile Include="MinMVC\Mediators\RootView.cs" />
     <Compile Include="MinMVC\Utils\Extensions.cs" />
+    <Compile Include="MinMVC\Core\InfoParser.cs" />
+    <Compile Include="MinMVC\Core\Injector.cs" />
+    <Compile Include="MinMVC\Core\Attributes.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
