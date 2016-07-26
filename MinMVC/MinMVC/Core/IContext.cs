@@ -4,9 +4,9 @@ namespace MinMVC
 {
 	public interface IContext
 	{
-		event Action onCleanUp;
+		event Action OnCleanUp;
 
-		IContext parent { set; get; }
+		IContext Parent { set; get; }
 
 		void Register (Type type, bool preventCaching = false);
 
@@ -29,5 +29,7 @@ namespace MinMVC
 		void Inject<T> (T instance);
 
 		void CleanUp ();
+
+		void Remove ();
 	}
 }

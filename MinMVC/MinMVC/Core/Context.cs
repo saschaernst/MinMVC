@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace MinMVC
 {
@@ -8,7 +7,7 @@ namespace MinMVC
 	{
 		public const string ROOT = "root";
 
-		public static IContext root {
+		public static IContext Root {
 			get {
 				return Get(ROOT);
 			}
@@ -26,63 +25,85 @@ namespace MinMVC
 			return contexts[id] = context ?? new Context(id);
 		}
 
-		public event Action onCleanUp = delegate { };
+		public static bool Has (string id)
+		{
+			return contexts.ContainsKey(id);
+		}
+
+		public static IContext Ensure (string id)
+		{
+			return Has(id) ? Get(id) : Add(id);
+		}
+
+		public static bool Remove (string id)
+		{
+			var hasContext = Has(id);
+
+			if (hasContext) {
+				Get(id).Remove();
+			}
+
+			return hasContext;
+		}
+
+		public event Action OnCleanUp = delegate { };
 
 		readonly IDictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
 		readonly IDictionary<Type, object> instanceCache = new Dictionary<Type, object>();
 		readonly HashSet<object> forceInjections = new HashSet<object>();
 
-		public string id { get; private set; }
+		public string Id { get; private set; }
 
-		IContext _parent;
+		IContext parent;
 
-		public IContext parent {
+		public IContext Parent {
 			get {
-				return _parent;
+				return parent;
 			}
 
 			set {
 				if (hasParent) {
-					_parent.onCleanUp -= CleanUp;
+					parent.OnCleanUp -= CleanUp;
 				}
 
-				_parent = value;
+				parent = value;
 
 				if (hasParent) {
-					_parent.onCleanUp += CleanUp;
+					parent.OnCleanUp += CleanUp;
 				}
 			}
 		}
 
 		bool hasParent {
-			get { return _parent != null; }
+			get { return parent != null; }
 		}
 
 		Injector injector;
 
 		public Context (string id = ROOT, IContext parent = null)
 		{
-			this.id = id;
-			this.parent = parent;
+			Id = id;
+			Parent = parent;
 
-			injector = new Injector (this);
+			injector = new Injector(this);
 			RegisterInstance<IContext>(this);
 		}
 
 		public void CleanUp ()
 		{
-			parent = null;
+			OnCleanUp();
+			OnCleanUp = null;
+		}
 
-			onCleanUp();
-			onCleanUp = null;
+		public void Remove ()
+		{
+			Parent = null;
 
-			injector.Cleanup ();
+			if (OnCleanUp != null) {
+				CleanUp();
+			}
 
-			typeMap.Clear();
-			instanceCache.Clear();
-			forceInjections.Clear();
-
-			contexts.Remove(id);
+			contexts.Remove(Id);
 		}
 
 		public void Register<T> (bool preventCaching = false)
@@ -154,12 +175,12 @@ namespace MinMVC
 					injector.Inject(instance);
 				}
 				else if (hasParent) {
-					instance = _parent.GetInstance(key);
+					instance = parent.GetInstance(key);
 				}
 			}
 			else if (forceInjections.Contains(instance)) {
 				injector.Inject(instance);
-				forceInjections.Remove (instance);
+				forceInjections.Remove(instance);
 			}
 
 			if (instance == null) {
@@ -169,9 +190,9 @@ namespace MinMVC
 			return instance;
 		}
 
-		public void Inject<T>(T instance)
+		public void Inject<T> (T instance)
 		{
-			injector.Inject (instance);
+			injector.Inject(instance);
 		}
 
 		public bool Has<T> ()
@@ -184,7 +205,7 @@ namespace MinMVC
 			bool hasKey = typeMap.ContainsKey(key);
 			bool findInParent = !hasKey && hasParent;
 
-			return findInParent ? _parent.Has(key) : hasKey;
+			return findInParent ? parent.Has(key) : hasKey;
 		}
 	}
 

@@ -7,7 +7,7 @@
 		public void Init (IMediatedView v)
 		{
 			view = (T)v;
-			view.onRemove += Remove;
+			view.OnRemove += Remove;
 
 			Register();
 		}
@@ -18,7 +18,7 @@
 		{
 			Unregister();
 
-			view.onRemove -= Remove;
+			view.OnRemove -= Remove;
 			view = null;
 		}
 

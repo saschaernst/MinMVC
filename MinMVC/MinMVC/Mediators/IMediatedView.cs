@@ -4,10 +4,10 @@ namespace MinMVC
 {
 	public interface IMediatedView
 	{
-		event Action onRemove;
+		event Action OnRemove;
 
-		void OnMediation();
+		void OnMediation ();
 
-		void Remove();
+		void Remove ();
 	}
 }

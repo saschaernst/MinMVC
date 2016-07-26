@@ -5,39 +5,40 @@ namespace MinMVC
 {
 	public abstract class MediatedView : MonoBehaviour, IMediatedView
 	{
-		public event Action onRemove;
+		public event Action OnRemove;
 
-		protected virtual void Start()
+		protected virtual void Start ()
 		{
-			Mediate();
+			MediateView();
 		}
 
-		protected virtual void OnDestroy()
+		protected virtual void OnDestroy ()
 		{
-			onRemove();
+			OnRemove();
 		}
 
-		public virtual void OnMediation()
+		public virtual void OnMediation ()
 		{
 
 		}
 
-		public virtual void Remove()
+		public virtual void Remove ()
 		{
-			if(gameObject != null) {
+			if (gameObject != null) {
 				Destroy(gameObject);
-			} else {
+			}
+			else {
 				OnDestroy();
 			}
 		}
 
-		protected void Mediate()
+		protected void MediateView ()
 		{
-			if(transform.parent) {
+			if (transform.parent) {
 				IRootView root = transform.parent.GetComponentInParent<IRootView>();
 
-				if(root != null) {
-					root.mediate(this);
+				if (root != null) {
+					root.Mediate(this);
 				}
 			}
 		}

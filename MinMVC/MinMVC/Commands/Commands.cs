@@ -13,12 +13,12 @@ namespace MinMVC
 		[PostInjection]
 		public void Init ()
 		{
-			context.onCleanUp += CleanUp;
+			context.OnCleanUp += CleanUp;
 		}
 
 		void CleanUp ()
 		{
-			context.onCleanUp -= CleanUp;
+			context.OnCleanUp -= CleanUp;
 			caches.Values.Each(cache => cache.CleanUp());
 			caches.Clear();
 		}

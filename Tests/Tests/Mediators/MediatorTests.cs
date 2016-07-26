@@ -29,7 +29,7 @@ namespace MinMVC
 		[Test]
 		public void UnregistersOnViewRemoval ()
 		{
-			view.When(v => v.Remove()).Do(v => view.onRemove += Raise.Event<Action>());
+			view.When(v => v.Remove()).Do(v => view.OnRemove += Raise.Event<Action>());
 			mediator.dispatcher.dispatch();
 
 			Assert.Null(mediator.dispatcher);

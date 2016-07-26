@@ -53,7 +53,7 @@ namespace MinMVC
 
 		void RegisterCleanups<T> (T instance, HashSet<MethodInfo> methods)
 		{
-			methods.Each(method => context.onCleanUp += () => method.Invoke(instance, EMPTY_PARAMS));
+			methods.Each(method => context.OnCleanUp += () => method.Invoke(instance, EMPTY_PARAMS));
 		}
 
 		public void Cleanup ()
