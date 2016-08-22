@@ -5,46 +5,46 @@ namespace MinMVC
 {
 	public class Context : IContext
 	{
-		public const string ROOT = "root";
+		//public const string ROOT = "root";
 
-		public static IContext Root {
-			get {
-				return Get(ROOT);
-			}
-		}
+		//public static IContext Root {
+		//	get {
+		//		return Get(ROOT);
+		//	}
+		//}
 
-		readonly static IDictionary<string, IContext> contexts = new Dictionary<string, IContext>();
+		//readonly static IDictionary<string, IContext> contexts = new Dictionary<string, IContext>();
 
-		public static IContext Get (string id)
-		{
-			return contexts[id];
-		}
+		//public static IContext Get (string id)
+		//{
+		//	return contexts[id];
+		//}
 
-		public static IContext Add (string id, IContext context = null)
-		{
-			return contexts[id] = context ?? new Context(id);
-		}
+		//public static IContext Add (string id, IContext context = null)
+		//{
+		//	return contexts[id] = context ?? new Context(id);
+		//}
 
-		public static bool Has (string id)
-		{
-			return contexts.ContainsKey(id);
-		}
+		//public static bool Has (string id)
+		//{
+		//	return contexts.ContainsKey(id);
+		//}
 
-		public static IContext Ensure (string id)
-		{
-			return Has(id) ? Get(id) : Add(id);
-		}
+		//public static IContext Ensure (string id)
+		//{
+		//	return Has(id) ? Get(id) : Add(id);
+		//}
 
-		public static bool Remove (string id)
-		{
-			var hasContext = Has(id);
+		//public static bool Remove (string id)
+		//{
+		//	var hasContext = Has(id);
 
-			if (hasContext) {
-				Get(id).Remove();
-			}
+		//	if (hasContext) {
+		//		Get(id).Remove();
+		//	}
 
-			return hasContext;
-		}
+		//	return hasContext;
+		//}
 
 		public event Action OnCleanUp = delegate { };
 
@@ -62,48 +62,43 @@ namespace MinMVC
 			}
 
 			set {
-				if (hasParent) {
+				if (HasParent) {
 					parent.OnCleanUp -= CleanUp;
 				}
 
 				parent = value;
 
-				if (hasParent) {
+				if (HasParent) {
 					parent.OnCleanUp += CleanUp;
 				}
 			}
 		}
 
-		bool hasParent {
+		bool HasParent {
 			get { return parent != null; }
 		}
 
 		Injector injector;
+		bool enforceInjections;
 
-		public Context (string id = ROOT, IContext parent = null)
+		public Context (string id = "", IContext parent = null, bool enforceInjections = false)
 		{
 			Id = id;
 			Parent = parent;
 
+			this.enforceInjections = enforceInjections;
 			injector = new Injector(this);
 			RegisterInstance<IContext>(this);
 		}
 
 		public void CleanUp ()
 		{
-			OnCleanUp();
-			OnCleanUp = null;
-		}
-
-		public void Remove ()
-		{
 			Parent = null;
 
 			if (OnCleanUp != null) {
-				CleanUp();
+				OnCleanUp();
+				OnCleanUp = null;
 			}
-
-			contexts.Remove(Id);
 		}
 
 		public void Register<T> (bool preventCaching = false)
@@ -170,11 +165,9 @@ namespace MinMVC
 				Type value;
 
 				if (typeMap.TryGetValue(key, out value)) {
-					instance = Activator.CreateInstance(value);
-					instanceCache.UpdateEntry(key, instance);
-					injector.Inject(instance);
+					instance = CreateInstance(key, value);
 				}
-				else if (hasParent) {
+				else if (HasParent) {
 					instance = parent.GetInstance(key);
 				}
 			}
@@ -184,8 +177,22 @@ namespace MinMVC
 			}
 
 			if (instance == null) {
-				throw new NotRegisteredException("not registered: " + key);
+				if (enforceInjections) {
+					throw new NotRegisteredException("not registered: " + key);
+				}
+				else {
+					Console.WriteLine(">>>>>>>>>> not registered: " + key);
+				}
 			}
+
+			return instance;
+		}
+
+		object CreateInstance (Type key, Type value)
+		{
+			object instance = Activator.CreateInstance(value);
+			instanceCache.UpdateEntry(key, instance);
+			injector.Inject(instance);
 
 			return instance;
 		}
@@ -203,7 +210,7 @@ namespace MinMVC
 		public bool Has (Type key)
 		{
 			bool hasKey = typeMap.ContainsKey(key);
-			bool findInParent = !hasKey && hasParent;
+			bool findInParent = !hasKey && HasParent;
 
 			return findInParent ? parent.Has(key) : hasKey;
 		}

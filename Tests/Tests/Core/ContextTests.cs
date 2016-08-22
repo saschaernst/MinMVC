@@ -10,7 +10,7 @@ namespace MinMVC
 		[SetUp]
 		public void Setup ()
 		{
-			context = new Context();
+			context = new Context("", null, true);
 		}
 
 		[Test]
@@ -181,7 +181,6 @@ namespace MinMVC
 			context.CleanUp();
 
 			Assert.True(instance.isCleanedUp);
-			Assert.Throws<NullReferenceException>(context.CleanUp);
 		}
 	}
 }

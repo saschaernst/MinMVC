@@ -29,7 +29,5 @@ namespace MinMVC
 		void Inject<T> (T instance);
 
 		void CleanUp ();
-
-		void Remove ();
 	}
 }
