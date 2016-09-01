@@ -19,7 +19,7 @@ namespace MinMVC
 		void CleanUp ()
 		{
 			context.OnCleanUp -= CleanUp;
-			caches.Values.Each(cache => cache.CleanUp());
+			caches.EachValue(cache => cache.CleanUp());
 			caches.Clear();
 		}
 

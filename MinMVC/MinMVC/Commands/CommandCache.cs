@@ -5,7 +5,7 @@ namespace MinMVC
 	public class CommandCache<T> : ICommandCache where T : class, IBaseCommand, new()
 	{
 		readonly Queue<IBaseCommand> cache = new Queue<IBaseCommand>();
-		readonly HashSet<IBaseCommand> retained = new HashSet<IBaseCommand>();
+		readonly IList<IBaseCommand> retained = new List<IBaseCommand>();
 		readonly IContext context;
 
 		public CommandCache (IContext con)
@@ -49,7 +49,7 @@ namespace MinMVC
 
 		public void CleanUp ()
 		{
-			retained.Each(command => command.Cancel());
+			retained.For(command => command.Cancel());
 			retained.Clear();
 			cache.Clear();
 		}

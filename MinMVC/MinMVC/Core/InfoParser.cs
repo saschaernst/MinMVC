@@ -19,17 +19,17 @@ namespace MinMVC
 
 		void ParseFieldAttributes (Type type, InjectionInfo info)
 		{
-			type.GetFields().Each(field => ParseAttributes(field, field.FieldType, info));
+			type.GetFields().For(field => ParseAttributes(field, field.FieldType, info));
 		}
 
 		void ParsePropertyAttributes (Type type, InjectionInfo info)
 		{
-			type.GetProperties().Each(property => ParseAttributes(property, property.PropertyType, info));
+			type.GetProperties().For(property => ParseAttributes(property, property.PropertyType, info));
 		}
 
 		void ParseAttributes (MemberInfo memberInfo, Type type, InjectionInfo info)
 		{
-			memberInfo.GetCustomAttributes(true).Each(attribute => {
+			memberInfo.GetCustomAttributes(true).For(attribute => {
 				if (attribute is Inject) {
 					info.AddInjection(memberInfo.Name, type);
 				}
@@ -41,7 +41,7 @@ namespace MinMVC
 			var methods = type.GetMethods();
 			HashSet<MethodInfo> taggedMethods = null;
 
-			methods.Each(method => method.GetCustomAttributes(true).Each(attribute => {
+			methods.For(method => method.GetCustomAttributes(true).For(attribute => {
 				if (attribute is T) {
 					taggedMethods = taggedMethods ?? info.GetCalls<T>();
 					taggedMethods.Add(method);
