@@ -1,18 +1,18 @@
 ﻿namespace MinMVC
 {
-	public class RootMediator<T> : Mediator<T> where T : class, IRootView
+	public class RootMediator<T> : Mediator<T> where T : class, IMediatedRoot
 	{
 		[Inject]
 		public IMediators mediators;
 
 		protected override void Register ()
 		{
-			view.Mediate = mediators.Mediate;
+			mediated.Mediate = mediators.Mediate;
 		}
 
 		protected override void Unregister ()
 		{
-			view.Mediate = null;
+			mediated.Mediate = null;
 		}
 	}
 }

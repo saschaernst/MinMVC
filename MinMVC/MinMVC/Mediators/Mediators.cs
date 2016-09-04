@@ -1,61 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace MinMVC
 {
-	public class Mediators : IMediators
+	public class Mediators : BaseMediators
 	{
 		[Inject]
 		public IContext context;
 
-		readonly IDictionary<Type, HashSet<Type>> viewMediatorsMap = new Dictionary<Type, HashSet<Type>>();
-
-		public void Map<TViewInterface, TMediator> () where TViewInterface : IMediatedView where TMediator : IMediator
+		protected override IMediator Get (Type type)
 		{
-			if (!context.Has<TMediator>()) {
-				context.Register<TMediator>(true);
-			}
-
-			Type viewType = typeof(TViewInterface);
-			HashSet<Type> mediatorTypes = viewMediatorsMap.Retrieve(viewType);
-			Type mediatorType = typeof(TMediator);
-			mediatorTypes.Add(mediatorType);
-		}
-
-		public void Mediate<T> (T view) where T : IMediatedView
-		{
-			Type viewType = view.GetType();
-			bool hasMediators = Create(view, viewType);
-
-			viewType.GetInterfaces().Each(viewInterface => {
-				hasMediators |= Create(view, viewInterface);
-			});
-
-			if (hasMediators) {
-				view.OnMediation();
-			}
-			else {
-				throw new NoMediatorMappingException("no mediators for " + viewType);
-			}
-		}
-
-		bool Create<T> (T view, Type viewType) where T : IMediatedView
-		{
-			HashSet<Type> mediatorTypes;
-			bool hasMediators = viewMediatorsMap.TryGetValue(viewType, out mediatorTypes);
-
-			if (hasMediators) {
-				mediatorTypes.Each(mediatorType => context.Get<IMediator>(mediatorType).Init(view));
-			}
-
-			return hasMediators;
-		}
-	}
-
-	public class NoMediatorMappingException : Exception
-	{
-		public NoMediatorMappingException (string message) : base(message)
-		{
+			return context.Get<IMediator>(type);
 		}
 	}
 }

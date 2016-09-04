@@ -18,9 +18,9 @@ namespace MinMVC
 		public void MediatesView ()
 		{
 			var mediator = Substitute.For<TestMediator>();
-			var view = Substitute.For<IMediatedView>();
+			var view = Substitute.For<IMediated>();
 			mediators.context.Get<IMediator>(typeof(TestMediator)).Returns(mediator);
-			mediators.Map<IMediatedView, TestMediator>();
+			mediators.Map<IMediated, TestMediator>();
 			mediators.Mediate(view);
 
 			mediator.Received(1).Init(view);
@@ -30,7 +30,7 @@ namespace MinMVC
 		[Test]
 		public void ThrowsExceptionIfNoMediatorIsMapped ()
 		{
-			var view = Substitute.For<IMediatedView>();
+			var view = Substitute.For<IMediated>();
 			var noInstance = new TestDelegate(() => mediators.Mediate(view));
 
 			Assert.Throws<NoMediatorMappingException>(noInstance);

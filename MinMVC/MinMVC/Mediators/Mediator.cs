@@ -1,13 +1,13 @@
 ﻿namespace MinMVC
 {
-	public abstract class Mediator<T> : IMediator where T : class, IMediatedView
+	public abstract class Mediator<T> : IMediator where T : class, IMediated
 	{
-		protected T view;
+		protected T mediated;
 
-		public void Init (IMediatedView v)
+		public void Init (IMediated med)
 		{
-			view = (T)v;
-			view.OnRemove += Remove;
+			mediated = (T)med;
+			mediated.OnRemove += Remove;
 
 			Register();
 		}
@@ -18,8 +18,8 @@
 		{
 			Unregister();
 
-			view.OnRemove -= Remove;
-			view = null;
+			mediated.OnRemove -= Remove;
+			mediated = null;
 		}
 
 		protected abstract void Unregister ();

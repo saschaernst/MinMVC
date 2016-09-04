@@ -46,19 +46,20 @@
     <Compile Include="MinMVC\Commands\NamedDispatcher.cs" />
     <Compile Include="MinMVC\Core\Context.cs" />
     <Compile Include="MinMVC\Core\IContext.cs" />
-    <Compile Include="MinMVC\Mediators\IMediatedView.cs" />
+    <Compile Include="MinMVC\Mediators\IMediated.cs" />
     <Compile Include="MinMVC\Mediators\IMediator.cs" />
     <Compile Include="MinMVC\Mediators\IMediators.cs" />
-    <Compile Include="MinMVC\Mediators\IRootView.cs" />
-    <Compile Include="MinMVC\Mediators\MediatedView.cs" />
+    <Compile Include="MinMVC\Mediators\IMediatedRoot.cs" />
+    <Compile Include="MinMVC\Mediators\MediatedBehaviour.cs" />
     <Compile Include="MinMVC\Mediators\Mediator.cs" />
     <Compile Include="MinMVC\Mediators\Mediators.cs" />
     <Compile Include="MinMVC\Mediators\RootMediator.cs" />
-    <Compile Include="MinMVC\Mediators\RootView.cs" />
+    <Compile Include="MinMVC\Mediators\MediatedRoot.cs" />
     <Compile Include="MinMVC\Utils\Extensions.cs" />
     <Compile Include="MinMVC\Core\InfoParser.cs" />
     <Compile Include="MinMVC\Core\Injector.cs" />
     <Compile Include="MinMVC\Core\Attributes.cs" />
+    <Compile Include="MinMVC\Mediators\BaseMediators.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

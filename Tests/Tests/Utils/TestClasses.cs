@@ -71,18 +71,18 @@ namespace MinMVC
 		public CircularClass1 circular;
 	}
 
-	public class TestMediator : Mediator<IMediatedView>
+	public class TestMediator : Mediator<IMediated>
 	{
 		public IDispatcher dispatcher;
 
 		protected override void Register ()
 		{
-			dispatcher.dispatch += view.Remove;
+			dispatcher.dispatch += mediated.Remove;
 		}
 
 		protected override void Unregister ()
 		{
-			dispatcher.dispatch -= view.Remove;
+			dispatcher.dispatch -= mediated.Remove;
 			dispatcher = null;
 		}
 	}

@@ -3,13 +3,13 @@ using System;
 
 namespace MinMVC
 {
-	public abstract class MediatedView : MonoBehaviour, IMediatedView
+	public abstract class MediatedBehaviour : MonoBehaviour, IMediated
 	{
 		public event Action OnRemove;
 
 		protected virtual void Start ()
 		{
-			MediateView();
+			MediateBehaviour();
 		}
 
 		protected virtual void OnDestroy ()
@@ -32,10 +32,10 @@ namespace MinMVC
 			}
 		}
 
-		protected void MediateView ()
+		protected void MediateBehaviour ()
 		{
 			if (transform.parent) {
-				IRootView root = transform.parent.GetComponentInParent<IRootView>();
+				IMediatedRoot root = transform.parent.GetComponentInParent<IMediatedRoot>();
 
 				if (root != null) {
 					root.Mediate(this);

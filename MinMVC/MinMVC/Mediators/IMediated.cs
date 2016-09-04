@@ -2,7 +2,7 @@ using System;
 
 namespace MinMVC
 {
-	public interface IMediatedView
+	public interface IMediated
 	{
 		event Action OnRemove;
 

@@ -6,13 +6,13 @@ namespace MinMVC
 {
 	public class MediatorTests
 	{
-		IMediatedView view;
+		IMediated view;
 		TestMediator mediator;
 
 		[SetUp]
 		public void Setup ()
 		{
-			view = Substitute.For<IMediatedView>();
+			view = Substitute.For<IMediated>();
 			mediator = new TestMediator();
 			mediator.dispatcher = Substitute.For<IDispatcher>();
 			mediator.Init(view);
