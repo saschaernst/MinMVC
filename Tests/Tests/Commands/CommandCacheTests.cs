@@ -8,16 +8,19 @@ namespace MinMVC
 		[Test]
 		public void ExecutesCommand ()
 		{
-			var context = Substitute.For<IContext>();
 			var commands = Substitute.For<Commands>();
-			commands.context = context;
 			var command = Substitute.For<TestCommand>();
-			context.Get<TestCommand>().Returns(command);
+			commands.GetCommand<TestCommand>().Returns(command);
 			var cache = new CommandCache<TestCommand>(commands);
 			cache.Execute();
 
-			context.Received(1).Register<TestCommand>(true);
+			commands.Received(1).GetCommand<TestCommand>();
 			command.Received(1).Execute();
+
+			cache.Execute();
+
+			commands.Received(1).GetCommand<TestCommand>();
+			command.Received(2).Execute();
 		}
 	}
 }
