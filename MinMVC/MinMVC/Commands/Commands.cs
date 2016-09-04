@@ -49,7 +49,7 @@ namespace MinMVC
 			}
 		}
 
-		public IBaseCommand GetCommand<T> () where T: IBaseCommand
+		public IBaseCommand GetCommand<T> () where T: class, IBaseCommand, new()
 		{
 			if (!context.Has<T>()) {
 				context.Register<T>(true);

@@ -8,6 +8,6 @@ namespace MinMVC
 
 		void Remove<T> () where T : class, IBaseCommand, new();
 
-		IBaseCommand GetCommand<T> () where T : IBaseCommand;
+		IBaseCommand GetCommand<T> () where T : class, IBaseCommand, new();
 	}
 }
