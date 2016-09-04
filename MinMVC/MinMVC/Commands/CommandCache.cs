@@ -6,11 +6,11 @@ namespace MinMVC
 	{
 		readonly Queue<IBaseCommand> cache = new Queue<IBaseCommand>();
 		readonly IList<IBaseCommand> retained = new List<IBaseCommand>();
-		readonly IContext context;
+		readonly ICommands commands;
 
-		public CommandCache (IContext con)
+		public CommandCache (ICommands com)
 		{
-			context = con;
+			commands = com;
 		}
 
 		public void Execute ()
@@ -61,11 +61,7 @@ namespace MinMVC
 
 		IBaseCommand Create ()
 		{
-			if (!context.Has<T>()) {
-				context.Register<T>(true);
-			}
-
-			IBaseCommand command = context.Get<T>();
+			IBaseCommand command = commands.GetCommand<T>();
 			command.cache = this;
 
 			return command;

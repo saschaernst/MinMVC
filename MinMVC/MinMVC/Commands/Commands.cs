@@ -26,7 +26,7 @@ namespace MinMVC
 		public ICommandCache Get<T> (bool init = false) where T : class, IBaseCommand, new()
 		{
 			Type type = typeof(T);
-			ICommandCache cache = caches.Retrieve(type, () => new CommandCache<T>(context));
+			ICommandCache cache = caches.Retrieve(type, () => new CommandCache<T>(this));
 
 			return cache;
 		}
@@ -47,6 +47,15 @@ namespace MinMVC
 				caches.Remove(type);
 				cache.CleanUp();
 			}
+		}
+
+		public IBaseCommand GetCommand<T> () where T: IBaseCommand
+		{
+			if (!context.Has<T>()) {
+				context.Register<T>(true);
+			}
+
+			return context.Get<T>();
 		}
 	}
 }

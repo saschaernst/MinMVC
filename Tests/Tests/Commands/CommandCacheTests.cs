@@ -9,9 +9,11 @@ namespace MinMVC
 		public void ExecutesCommand ()
 		{
 			var context = Substitute.For<IContext>();
+			var commands = Substitute.For<Commands>();
+			commands.context = context;
 			var command = Substitute.For<TestCommand>();
 			context.Get<TestCommand>().Returns(command);
-			var cache = new CommandCache<TestCommand>(context);
+			var cache = new CommandCache<TestCommand>(commands);
 			cache.Execute();
 
 			context.Received(1).Register<TestCommand>(true);

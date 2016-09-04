@@ -7,5 +7,7 @@ namespace MinMVC
 		bool Has<T> () where T : class, IBaseCommand, new();
 
 		void Remove<T> () where T : class, IBaseCommand, new();
+
+		IBaseCommand GetCommand<T> () where T : IBaseCommand;
 	}
 }
