@@ -14,7 +14,7 @@ namespace MinMVC
 
 		public static TValue Retrieve<TKey, TValue> (this IDictionary<TKey, TValue> dictionary, TKey key)
 		{
-			return Retrieve(dictionary, key, () => Activator.CreateInstance<TValue>());
+			return Retrieve(dictionary, key, Activator.CreateInstance<TValue>);
 		}
 
 		public static TValue Retrieve<TKey, TValue> (this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> defFunc)

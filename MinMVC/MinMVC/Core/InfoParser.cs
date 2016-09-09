@@ -90,15 +90,14 @@ namespace MinMVC
 
 		public IList<MethodInfo> GetCalls<T> () where T : Attribute
 		{
-			//if (calls != null) {
-
-			//}
-			//IList<MethodInfo> info;
-
-
 			calls = calls ?? new Dictionary<Type, IList<MethodInfo>>();
 
-			return calls.Retrieve(typeof(T));
+			return calls.Retrieve(typeof(T), CreateList);
+		}
+
+		IList<MethodInfo> CreateList ()
+		{
+			return new List<MethodInfo>();
 		}
 
 		public bool HasCalls<T> () where T : Attribute

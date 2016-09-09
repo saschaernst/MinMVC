@@ -8,9 +8,9 @@ namespace MinMVC
 		readonly IList<IBaseCommand> retained = new List<IBaseCommand>();
 		readonly ICommands commands;
 
-		public CommandCache (ICommands com)
+		public CommandCache (ICommands coms)
 		{
-			commands = com;
+			commands = coms;
 		}
 
 		public void Execute ()

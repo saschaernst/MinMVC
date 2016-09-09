@@ -19,9 +19,14 @@ namespace MinMVC
 		public ICommandCache Get<T> (bool init = false) where T : class, IBaseCommand, new()
 		{
 			Type type = typeof(T);
-			ICommandCache cache = caches.Retrieve(type, () => new CommandCache<T>(this));
+			ICommandCache cache = caches.Retrieve(type, CreateCache<T>);
 
 			return cache;
+		}
+
+		ICommandCache CreateCache<T> () where T : class, IBaseCommand, new()
+		{
+			return new CommandCache<T>(this);
 		}
 
 		public bool Has<T> () where T : class, IBaseCommand, new()

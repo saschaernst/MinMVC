@@ -9,7 +9,7 @@ namespace MinMVC
 		static readonly object[] EMPTY_PARAMS = new object[0];
 
 		readonly IDictionary<Type, InjectionInfo> infoMap = new Dictionary<Type, InjectionInfo>();
-		readonly InfoParser parser = new InfoParser ();
+		readonly InfoParser parser = new InfoParser();
 
 		IContext context;
 
@@ -17,7 +17,7 @@ namespace MinMVC
 		{
 			this.context = context;
 		}
-		
+
 		public void Inject<T> (T instance)
 		{
 			Type key = instance.GetType();
@@ -55,14 +55,16 @@ namespace MinMVC
 
 		void RegisterCleanups<T> (T instance, IList<MethodInfo> methods)
 		{
+			Console.WriteLine(methods.Count);
 			for (int i = 0; i < methods.Count; i++) {
-				context.OnCleanUp += () => methods[i].Invoke(instance, EMPTY_PARAMS);
+				var method = methods[i];
+				context.OnCleanUp += () => method.Invoke(instance, EMPTY_PARAMS);
 			}
 		}
 
 		public void Cleanup ()
 		{
-			infoMap.Clear ();
+			infoMap.Clear();
 		}
 	}
 }
