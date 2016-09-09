@@ -49,7 +49,10 @@ namespace MinMVC
 
 		public void CleanUp ()
 		{
-			retained.For(command => command.Cancel());
+			for (int i = 0; i < retained.Count; i++) {
+				retained[i].Cancel();
+			}
+
 			retained.Clear();
 			cache.Clear();
 		}

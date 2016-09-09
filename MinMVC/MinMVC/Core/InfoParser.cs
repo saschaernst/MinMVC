@@ -19,41 +19,58 @@ namespace MinMVC
 
 		void ParseFieldAttributes (Type type, InjectionInfo info)
 		{
-			type.GetFields().For(field => ParseAttributes(field, field.FieldType, info));
+			var fields = type.GetFields();
+
+			for (int i = 0; i < fields.Length; i++) {
+				var field = fields[i];
+				ParseAttributes(field, field.FieldType, info);
+			}
 		}
 
 		void ParsePropertyAttributes (Type type, InjectionInfo info)
 		{
-			type.GetProperties().For(property => ParseAttributes(property, property.PropertyType, info));
+			var properties = type.GetProperties();
+
+			for (int i = 0; i < properties.Length; i++) {
+				var property = properties[i];
+				ParseAttributes(property, property.PropertyType, info);
+			}
 		}
 
 		void ParseAttributes (MemberInfo memberInfo, Type type, InjectionInfo info)
 		{
-			memberInfo.GetCustomAttributes(true).For(attribute => {
-				if (attribute is Inject) {
+			var customAttributes = memberInfo.GetCustomAttributes(true);
+
+			for (int i = 0; i < customAttributes.Length; i++) {
+				if (customAttributes[i] is Inject) {
 					info.AddInjection(memberInfo.Name, type);
 				}
-			});
+			}
 		}
 
 		void ParseMethodAttributes<T> (Type type, InjectionInfo info) where T : Attribute
 		{
 			var methods = type.GetMethods();
-			HashSet<MethodInfo> taggedMethods = null;
+			IList<MethodInfo> taggedMethods = null;
 
-			methods.For(method => method.GetCustomAttributes(true).For(attribute => {
-				if (attribute is T) {
-					taggedMethods = taggedMethods ?? info.GetCalls<T>();
-					taggedMethods.Add(method);
+			for (int i = 0; i < methods.Length; i++) {
+				var method = methods[i];
+				var attributes = method.GetCustomAttributes(true);
+
+				for (int j = 0; j < attributes.Length; j++) {
+					if (attributes[j] is T) {
+						taggedMethods = taggedMethods ?? info.GetCalls<T>();
+						taggedMethods.Add(method);
+					}
 				}
-			}));
+			}
 		}
 	}
 
 	public class InjectionInfo
 	{
 		IDictionary<string, Type> injections;
-		IDictionary<Type, HashSet<MethodInfo>> calls;
+		IDictionary<Type, IList<MethodInfo>> calls;
 
 		public bool HasInjections ()
 		{
@@ -71,9 +88,15 @@ namespace MinMVC
 			return injections;
 		}
 
-		public HashSet<MethodInfo> GetCalls<T> () where T : Attribute
+		public IList<MethodInfo> GetCalls<T> () where T : Attribute
 		{
-			calls = calls ?? new Dictionary<Type, HashSet<MethodInfo>>();
+			//if (calls != null) {
+
+			//}
+			//IList<MethodInfo> info;
+
+
+			calls = calls ?? new Dictionary<Type, IList<MethodInfo>>();
 
 			return calls.Retrieve(typeof(T));
 		}

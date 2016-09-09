@@ -38,22 +38,26 @@ namespace MinMVC
 
 		void InjectInstances<T> (T instance, Type type, IDictionary<string, Type> injectionMap, BindingFlags flags)
 		{
-			injectionMap.Each(pair => {
+			foreach (var pair in injectionMap) {
 				object injection = context.GetInstance(pair.Value);
 				object[] param = { injection };
 
 				type.InvokeMember(pair.Key, flags, null, instance, param);
-			});
+			}
 		}
 
-		void InvokeMethods (object instance, IEnumerable<MethodInfo> methods, object[] param = null)
+		void InvokeMethods (object instance, IList<MethodInfo> methods, object[] param = null)
 		{
-			methods.Each(method => method.Invoke(instance, param ?? EMPTY_PARAMS));
+			for (int i = 0; i < methods.Count; i++) {
+				methods[i].Invoke(instance, param ?? EMPTY_PARAMS);
+			}
 		}
 
-		void RegisterCleanups<T> (T instance, HashSet<MethodInfo> methods)
+		void RegisterCleanups<T> (T instance, IList<MethodInfo> methods)
 		{
-			methods.Each(method => context.OnCleanUp += () => method.Invoke(instance, EMPTY_PARAMS));
+			for (int i = 0; i < methods.Count; i++) {
+				context.OnCleanUp += () => methods[i].Invoke(instance, EMPTY_PARAMS);
+			}
 		}
 
 		public void Cleanup ()

@@ -5,40 +5,10 @@ namespace MinMVC
 {
 	public static class Extensions
 	{
-		public static void Times (this int count, Action<int> handler)
-		{
-			for (int i = 0; i < count; i += 1) {
-				handler(i);
-			}
-		}
-
-		public static void For<T> (this IList<T> list, Action<T> handler)
-		{
-			int count = list.Count;
-
-			for (int i = 0; i < count; i += 1) {
-				handler(list[i]);
-			}
-		}
-
 		public static void Each<T> (this IEnumerable<T> enumerable, Action<T> handler)
 		{
 			foreach (T item in enumerable) {
 				handler(item);
-			}
-		}
-
-		public static void EachKey<T, U> (this IDictionary<T, U> enumerable, Action<T> handler)
-		{
-			foreach (KeyValuePair<T, U> pair in enumerable) {
-				handler(pair.Key);
-			}
-		}
-
-		public static void EachValue<T, U> (this IDictionary<T, U> enumerable, Action<U> handler)
-		{
-			foreach (KeyValuePair<T, U> pair in enumerable) {
-				handler(pair.Value);
 			}
 		}
 

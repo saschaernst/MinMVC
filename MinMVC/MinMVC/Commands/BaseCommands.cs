@@ -9,7 +9,10 @@ namespace MinMVC
 
 		protected void ClearCaches ()
 		{
-			caches.EachValue(cache => cache.CleanUp());
+			foreach (var pair in caches) {
+				pair.Value.CleanUp();
+			}
+
 			caches.Clear();
 		}
 
