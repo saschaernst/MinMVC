@@ -2,7 +2,7 @@
 
 namespace MinMVC
 {
-	public interface IMediatedRoot : IMediated
+	public interface IMediating : IMediated
 	{
 		Action<IMediated> Mediate { get; set; }
 	}

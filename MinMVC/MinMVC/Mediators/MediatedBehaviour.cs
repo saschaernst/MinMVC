@@ -35,7 +35,7 @@ namespace MinMVC
 		protected void MediateBehaviour ()
 		{
 			if (transform.parent) {
-				IMediatedRoot root = transform.parent.GetComponentInParent<IMediatedRoot>();
+				IMediating root = transform.parent.GetComponentInParent<IMediating>();
 
 				if (root != null) {
 					root.Mediate(this);

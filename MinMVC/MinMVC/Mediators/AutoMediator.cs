@@ -1,6 +1,6 @@
 ﻿namespace MinMVC
 {
-	public class RootMediator<T> : Mediator<T> where T : class, IMediatedRoot
+	public class AutoMediator<T> : Mediator<T> where T : class, IMediating
 	{
 		[Inject]
 		public IMediators mediators;

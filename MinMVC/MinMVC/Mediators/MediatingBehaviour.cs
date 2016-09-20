@@ -2,7 +2,7 @@
 
 namespace MinMVC
 {
-	public abstract class MediatedRoot : MediatedBehaviour, IMediatedRoot
+	public abstract class MediatingBehaviour : MediatedBehaviour, IMediating
 	{
 		public Action<IMediated> Mediate { get; set; }
 	}
