@@ -55,7 +55,6 @@ namespace MinMVC
 
 		void RegisterCleanups<T> (T instance, IList<MethodInfo> methods)
 		{
-			Console.WriteLine(methods.Count);
 			for (int i = 0; i < methods.Count; i++) {
 				var method = methods[i];
 				context.OnCleanUp += () => method.Invoke(instance, EMPTY_PARAMS);
