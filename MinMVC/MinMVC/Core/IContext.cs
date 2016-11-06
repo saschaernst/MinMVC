@@ -6,15 +6,17 @@ namespace MinMVC
 	{
 		event Action OnCleanUp;
 
+		string Id { get; }
+
 		IContext Parent { set; get; }
 
 		void Register (Type type, bool preventCaching = false);
 
 		void Register (Type key, Type value, bool preventCaching = false);
 
-		void Register<T> (bool preventCaching = false);
+		void Register<T> (bool preventCaching = false) where T : class, new();
 
-		void Register<TInterface, TClass> (bool preventCaching = false);
+		void Register<TInterface, TClass> (bool preventCaching = false) where TInterface : class where TClass : class, new();
 
 		void RegisterInstance<T> (T instance, bool preventInjection = false);
 

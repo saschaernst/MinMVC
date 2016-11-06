@@ -5,48 +5,9 @@ namespace MinMVC
 {
 	public class Context : IContext
 	{
-		//public const string ROOT = "root";
-
-		//public static IContext Root {
-		//	get {
-		//		return Get(ROOT);
-		//	}
-		//}
-
-		//readonly static IDictionary<string, IContext> contexts = new Dictionary<string, IContext>();
-
-		//public static IContext Get (string id)
-		//{
-		//	return contexts[id];
-		//}
-
-		//public static IContext Add (string id, IContext context = null)
-		//{
-		//	return contexts[id] = context ?? new Context(id);
-		//}
-
-		//public static bool Has (string id)
-		//{
-		//	return contexts.ContainsKey(id);
-		//}
-
-		//public static IContext Ensure (string id)
-		//{
-		//	return Has(id) ? Get(id) : Add(id);
-		//}
-
-		//public static bool Remove (string id)
-		//{
-		//	var hasContext = Has(id);
-
-		//	if (hasContext) {
-		//		Get(id).Remove();
-		//	}
-
-		//	return hasContext;
-		//}
-
 		public event Action OnCleanUp = delegate { };
+
+		public Action<string> Output { get; set; }
 
 		readonly IDictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
 		readonly IDictionary<Type, object> instanceCache = new Dictionary<Type, object>();
@@ -79,14 +40,13 @@ namespace MinMVC
 		}
 
 		Injector injector;
-		bool enforceInjections;
+		bool optionalInjections;
 
-		public Context (string id = "", IContext parent = null, bool enforceInjections = false)
+		public Context (string id = null, bool optInjections = false, Action<string> output = null)
 		{
+			Output = output ?? Console.WriteLine;
 			Id = id;
-			Parent = parent;
-
-			this.enforceInjections = enforceInjections;
+			optionalInjections = optInjections;
 			injector = new Injector(this);
 			RegisterInstance<IContext>(this);
 		}
@@ -101,13 +61,13 @@ namespace MinMVC
 			}
 		}
 
-		public void Register<T> (bool preventCaching = false)
+		public void Register<T> (bool preventCaching = false) where T: class, new()
 		{
 			Register<T, T>(preventCaching);
 		}
 
-		public void Register<TInterface, TClass> (bool preventCaching = false)
-		{
+		public void Register<TInterface, TClass> (bool preventCaching = false) where TInterface : class where TClass: class, new()
+		{ 
 			Type key = typeof(TInterface);
 			Type value = typeof(TClass);
 
@@ -121,6 +81,10 @@ namespace MinMVC
 
 		public void Register (Type key, Type value, bool preventCaching = false)
 		{
+			if (value != null && value.IsInterface) {
+				throw new CannotRegisterInterfaceAsValueException(value.Name + " is an interface");
+			}
+
 			if (typeMap.AddNewEntry(key, value)) {
 				if (!preventCaching) {
 					Cache(key, default(object));
@@ -134,7 +98,7 @@ namespace MinMVC
 		public void RegisterInstance<T> (T instance, bool preventInjection = false)
 		{
 			Type key = typeof(T);
-			Register(key, key, true);
+			Register(key, null, true);
 			Cache(key, instance);
 
 			if (!preventInjection) {
@@ -177,11 +141,11 @@ namespace MinMVC
 			}
 
 			if (instance == null) {
-				if (enforceInjections) {
-					throw new NotRegisteredException("not registered: " + key);
+				if (optionalInjections) {
+					Output(">>>>>>>>>> not registered: " + key);
 				}
 				else {
-					Console.WriteLine(">>>>>>>>>> not registered: " + key);
+					throw new NotRegisteredException("not registered: " + key);
 				}
 			}
 
@@ -213,20 +177,6 @@ namespace MinMVC
 			bool findInParent = !hasKey && HasParent;
 
 			return findInParent ? parent.Has(key) : hasKey;
-		}
-	}
-
-	public class NotRegisteredException : Exception
-	{
-		public NotRegisteredException (string message) : base(message)
-		{
-		}
-	}
-
-	public class AlreadyRegisteredException : Exception
-	{
-		public AlreadyRegisteredException (string message) : base(message)
-		{
 		}
 	}
 }

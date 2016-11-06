@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
 
 namespace MinMVC
 {
@@ -10,7 +9,7 @@ namespace MinMVC
 		[SetUp]
 		public void Setup ()
 		{
-			context = new Context("", null, true);
+			context = new Context();
 		}
 
 		[Test]
@@ -138,6 +137,12 @@ namespace MinMVC
 			context.Register<FieldInjectionTestClass>();
 
 			Assert.Throws<NotRegisteredException>(() => context.Get<FieldInjectionTestClass>());
+		}
+
+		[Test]
+		public void ThrowsCannotRegisterInterfaceAsValueException ()
+		{
+			Assert.Throws<CannotRegisterInterfaceAsValueException>(() => context.Register(typeof(ITestClass)));
 		}
 
 		[Test]
