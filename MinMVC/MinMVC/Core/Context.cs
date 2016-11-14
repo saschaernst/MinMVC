@@ -120,19 +120,19 @@ namespace MinMVC
 			return (T)GetInstance(key);
 		}
 
-		public object GetInstance (Type key)
+		public object GetInstance (Type type)
 		{
 			object instance;
-			instanceCache.TryGetValue(key, out instance);
+			instanceCache.TryGetValue(type, out instance);
 
 			if (instance == null) {
 				Type value;
 
-				if (typeMap.TryGetValue(key, out value)) {
-					instance = CreateInstance(key, value);
+				if (typeMap.TryGetValue(type, out value)) {
+					instance = CreateInstance(type, value);
 				}
 				else if (HasParent) {
-					instance = parent.GetInstance(key);
+					instance = parent.GetInstance(type);
 				}
 			}
 			else if (forceInjections.Contains(instance)) {
@@ -141,11 +141,12 @@ namespace MinMVC
 			}
 
 			if (instance == null) {
-				if (optionalInjections) {
-					Output(">>>>>>>>>> not registered: " + key);
+				if (type != null && type.IsClass && !type.IsInterface) {
+					Register(type);
+					instance = GetInstance(type);
 				}
-				else {
-					throw new NotRegisteredException("not registered: " + key);
+				else if (!optionalInjections) {
+					throw new NotRegisteredException("not registered: " + type);
 				}
 			}
 

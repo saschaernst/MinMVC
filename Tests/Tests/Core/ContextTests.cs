@@ -27,16 +27,6 @@ namespace MinMVC
 		}
 
 		[Test]
-		public void CachesRegisteredClass ()
-		{
-			context.Register<TestClass>();
-			var instanceA = context.Get<TestClass>();
-			var instanceB = context.Get<TestClass>();
-
-			Assert.AreEqual(instanceA, instanceB);
-		}
-
-		[Test]
 		public void RegistersInterfaceByTemplate ()
 		{
 			context.Register<ITestClass, TestClass>();
@@ -71,22 +61,20 @@ namespace MinMVC
 		[Test]
 		public void RegistersInstanceAlwaysCached ()
 		{
-			context.Register<ITestInjection, TestInjection>();
-			var instance = new FieldInjectionTestClass();
+			var instance = new TestClass();
 			context.RegisterInstance(instance);
 
-			Assert.True(context.Has<FieldInjectionTestClass>());
+			Assert.True(context.Has<TestClass>());
 
-			var retrieved = context.Get<FieldInjectionTestClass>();
+			var retrieved = context.Get<TestClass>();
 
 			Assert.AreEqual(instance, retrieved);
-			Assert.NotNull(instance.testInjection);
+			Assert.NotNull(instance.fieldInjection);
 		}
 
 		[Test]
 		public void CachesInstances ()
 		{
-			context.Register<TestClass>();
 			var inst1 = context.Get<TestClass>();
 			var inst2 = context.Get<TestClass>();
 
@@ -108,35 +96,29 @@ namespace MinMVC
 		[Test]
 		public void ThrowsExceptionWhenTypeNotRegistered ()
 		{
-			Assert.Throws<NotRegisteredException>(() => context.Get<TestClass>());
+			Assert.Throws<NotRegisteredException>(() => context.Get<ITestClass>());
 		}
 
 		[Test]
 		public void InjectsIntoFieldOfRegisteredInstance ()
 		{
-			context.Register<FieldInjectionTestClass>();
-			context.Register<ITestInjection, TestInjection>();
-			var instance = context.Get<FieldInjectionTestClass>();
+			var instance = context.Get<TestClass>();
 
-			Assert.NotNull(instance.testInjection);
+			Assert.NotNull(instance.fieldInjection);
 		}
 
 		[Test]
 		public void InjectsIntoPropertyOfRegisteredInstance ()
 		{
-			context.Register<PropertyInjectionTestClass>();
-			context.Register<ITestInjection, TestInjection>();
-			var instance = context.Get<PropertyInjectionTestClass>();
+			var instance = context.Get<TestClass>();
 
-			Assert.NotNull(instance.testInjection);
+			Assert.NotNull(instance.propertyInjection);
 		}
 
 		[Test]
 		public void ThrowsExceptionIfInjectionIsNotRegistered ()
 		{
-			context.Register<FieldInjectionTestClass>();
-
-			Assert.Throws<NotRegisteredException>(() => context.Get<FieldInjectionTestClass>());
+			Assert.Throws<NotRegisteredException>(() => context.Get<TextClassInjectingInterface>());
 		}
 
 		[Test]
@@ -148,18 +130,15 @@ namespace MinMVC
 		[Test]
 		public void InjectsIntoNonRegisterdInstance ()
 		{
-			context.Register<ITestInjection, TestInjection>();
-			var instance = new FieldInjectionTestClass();
+			var instance = new TestClass();
 			context.Inject(instance);
 
-			Assert.NotNull(instance.testInjection);
+			Assert.NotNull(instance.fieldInjection);
 		}
 
 		[Test]
 		public void InjectsInCircle ()
 		{
-			context.Register<CircularClass1>();
-			context.Register<CircularClass2>();
 			var instance1 = context.Get<CircularClass1>();
 
 			Assert.NotNull(instance1);
@@ -168,9 +147,7 @@ namespace MinMVC
 		[Test]
 		public void CallsPostInjection ()
 		{
-			context.Register<ITestInjection, TestInjection>();
-			context.Register<PostInjectionClass>();
-			var instance = context.Get<PostInjectionClass>();
+			var instance = context.Get<TestClass>();
 
 			Assert.True(instance.isPostInjected);
 		}
@@ -178,8 +155,8 @@ namespace MinMVC
 		[Test]
 		public void CleansupContext ()
 		{
-			context.Register<CleanupClass>();
-			var instance = context.Get<CleanupClass>();
+			context.Register<TestClass>();
+			var instance = context.Get<TestClass>();
 
 			Assert.False(instance.isCleanedUp);
 

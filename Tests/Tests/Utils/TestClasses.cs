@@ -9,34 +9,20 @@ namespace MinMVC
 
 	public class TestClass : ITestClass
 	{
-
-	}
-
-	public class FieldInjectionTestClass
-	{
-		[Inject]
-		public ITestInjection testInjection;
-	}
-
-	public class PropertyInjectionTestClass
-	{
-		[Inject]
-		public ITestInjection testInjection { get; set; }
-	}
-
-	public interface ITestInjection
-	{
-
-	}
-
-	public class TestInjection : ITestInjection
-	{
-
-	}
-
-	public class CleanupClass
-	{
+		public bool isPostInjected;
 		public bool isCleanedUp;
+
+		[Inject]
+		public TestInjection fieldInjection;
+
+		[Inject]
+		public TestInjection propertyInjection { get; set; }
+
+		[PostInjection]
+		public void PostInjection ()
+		{
+			isPostInjected = true;
+		}
 
 		[Cleanup]
 		public void Cleanup ()
@@ -45,18 +31,15 @@ namespace MinMVC
 		}
 	}
 
-	public class PostInjectionClass
+	public class TextClassInjectingInterface
 	{
 		[Inject]
-		public ITestInjection testInjection;
+		public ITestClass injection;
+	}
 
-		public bool isPostInjected;
+	public class TestInjection
+	{
 
-		[PostInjection]
-		public void PostInjection ()
-		{
-			isPostInjected = true;
-		}
 	}
 
 	public class CircularClass1
