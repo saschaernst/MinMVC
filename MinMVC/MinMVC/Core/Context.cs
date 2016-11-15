@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace MinMVC
 {
+	public enum InjectionCheck
+	{
+		None,
+		Warning,
+		Exception
+	}
 	public class Context : IContext
 	{
 		public event Action OnCleanUp = delegate { };
@@ -40,15 +46,22 @@ namespace MinMVC
 		}
 
 		Injector injector;
-		bool optionalInjections;
+		InjectionCheck handleMissingInjections;
+		bool useAutoResolve;
 
-		public Context (string id = null, bool optInjections = false, Action<string> output = null)
+		public Context (InjectionCheck checkInjections = InjectionCheck.Exception, bool autoResolve = false, Action<string> output = null)
 		{
 			Output = output ?? Console.WriteLine;
-			Id = id;
-			optionalInjections = optInjections;
+			handleMissingInjections = checkInjections;
+			useAutoResolve = autoResolve;
 			injector = new Injector(this);
 			RegisterInstance<IContext>(this);
+		}
+
+		public Context (string id, InjectionCheck checkInjections = InjectionCheck.Exception, bool autoResolve = false, Action<string> output = null)
+			: this(checkInjections, autoResolve, output)
+		{
+			Id = id;
 		}
 
 		public void CleanUp ()
@@ -61,13 +74,13 @@ namespace MinMVC
 			}
 		}
 
-		public void Register<T> (bool preventCaching = false) where T: class, new()
+		public void Register<T> (bool preventCaching = false) where T : class, new()
 		{
 			Register<T, T>(preventCaching);
 		}
 
-		public void Register<TInterface, TClass> (bool preventCaching = false) where TInterface : class where TClass: class, new()
-		{ 
+		public void Register<TInterface, TClass> (bool preventCaching = false) where TInterface : class where TClass : class, new()
+		{
 			Type key = typeof(TInterface);
 			Type value = typeof(TClass);
 
@@ -145,8 +158,14 @@ namespace MinMVC
 					Register(type);
 					instance = GetInstance(type);
 				}
-				else if (!optionalInjections) {
-					throw new NotRegisteredException("not registered: " + type);
+				else {
+					switch (handleMissingInjections) {
+					case InjectionCheck.Exception:
+						throw new NotRegisteredException("not registered: " + type);
+					case InjectionCheck.Warning:
+						Output("not registered: " + type);
+						break;
+					}
 				}
 			}
 

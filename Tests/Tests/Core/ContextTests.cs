@@ -9,7 +9,7 @@ namespace MinMVC
 		[SetUp]
 		public void Setup ()
 		{
-			context = new Context();
+			context = new Context(InjectionCheck.Exception, true);
 		}
 
 		[Test]
