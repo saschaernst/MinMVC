@@ -40,7 +40,7 @@
     <Compile Include="Tests\Commands\CommandCacheTests.cs" />
     <Compile Include="Tests\Commands\CommandsTests.cs" />
     <Compile Include="Tests\Commands\NamedDispatcherTests.cs" />
-    <Compile Include="Tests\Core\ContextTests.cs" />
+    <Compile Include="Tests\Context\ContextTests.cs" />
     <Compile Include="Tests\Mediators\MediatorTests.cs" />
     <Compile Include="Tests\Mediators\MediatorsTests.cs" />
     <Compile Include="Tests\Utils\TestClasses.cs" />

@@ -44,8 +44,8 @@
     <Compile Include="MinMVC\Commands\ICommands.cs" />
     <Compile Include="MinMVC\Commands\INamedDispatcher.cs" />
     <Compile Include="MinMVC\Commands\NamedDispatcher.cs" />
-    <Compile Include="MinMVC\Core\Context.cs" />
-    <Compile Include="MinMVC\Core\IContext.cs" />
+    <Compile Include="MinMVC\Context\Context.cs" />
+    <Compile Include="MinMVC\Context\IContext.cs" />
     <Compile Include="MinMVC\Mediators\IMediated.cs" />
     <Compile Include="MinMVC\Mediators\IMediator.cs" />
     <Compile Include="MinMVC\Mediators\IMediators.cs" />
@@ -56,9 +56,9 @@
     <Compile Include="MinMVC\Mediators\AutoMediator.cs" />
     <Compile Include="MinMVC\Mediators\MediatingBehaviour.cs" />
     <Compile Include="MinMVC\Utils\Extensions.cs" />
-    <Compile Include="MinMVC\Core\InfoParser.cs" />
-    <Compile Include="MinMVC\Core\Injector.cs" />
-    <Compile Include="MinMVC\Core\Attributes.cs" />
+    <Compile Include="MinMVC\Context\InfoParser.cs" />
+    <Compile Include="MinMVC\Context\Injector.cs" />
+    <Compile Include="MinMVC\Context\Attributes.cs" />
     <Compile Include="MinMVC\Mediators\BaseMediators.cs" />
     <Compile Include="MinMVC\Commands\BaseCommands.cs" />
     <Compile Include="MinMVC\Utils\Exceptions.cs" />
