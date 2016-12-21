@@ -16,6 +16,7 @@ namespace MinMVC
 		public Action<string> Output { get; set; }
 
 		readonly IDictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
+		readonly IDictionary<Type, Func<object>> handlerMap = new Dictionary<Type, Func<object>>();
 		readonly IDictionary<Type, object> instanceCache = new Dictionary<Type, object>();
 		readonly HashSet<object> forceInjections = new HashSet<object>();
 
@@ -119,6 +120,17 @@ namespace MinMVC
 			}
 		}
 
+		public void RegisterHandler<T>(Func<object> handler)
+		{
+			Type key = typeof(T);
+			RegisterHandler(key, handler);
+		}
+
+		public void RegisterHandler(Type key, Func<object> handler)
+		{
+			handlerMap.AddNewEntry(key, handler);
+		}
+
 		void Cache<T> (Type key, T instance)
 		{
 			if (!instanceCache.AddNewEntry(key, instance)) {
@@ -140,9 +152,14 @@ namespace MinMVC
 
 			if (instance == null) {
 				Type value;
+				Func<object> handler;
 
 				if (typeMap.TryGetValue(type, out value)) {
 					instance = CreateInstance(type, value);
+				}
+				else if (handlerMap.TryGetValue(type, out handler)) {
+					instance = handler();
+					injector.Inject(instance);
 				}
 				else if (HasParent) {
 					instance = parent.GetInstance(type);
@@ -154,7 +171,7 @@ namespace MinMVC
 			}
 
 			if (instance == null) {
-				if (type != null && type.IsClass && !type.IsInterface) {
+				if (useAutoResolve && type != null && type.IsClass && !type.IsInterface && !type.IsAbstract) {
 					Register(type);
 					instance = GetInstance(type);
 				}
@@ -174,7 +191,7 @@ namespace MinMVC
 
 		object CreateInstance (Type key, Type value)
 		{
-			object instance = Activator.CreateInstance(value);
+			var instance = Activator.CreateInstance(value);
 			instanceCache.UpdateEntry(key, instance);
 			injector.Inject(instance);
 
@@ -184,6 +201,13 @@ namespace MinMVC
 		public void Inject<T> (T instance)
 		{
 			injector.Inject(instance);
+		}
+
+		public T Create<T>() where T: new()
+		{
+			var type = typeof(T);
+
+			return (T)CreateInstance(type, type);
 		}
 
 		public bool Has<T> ()

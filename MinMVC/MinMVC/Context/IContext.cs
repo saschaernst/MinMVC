@@ -20,6 +20,10 @@ namespace MinMVC
 
 		void RegisterInstance<T> (T instance, bool preventInjection = false);
 
+		void RegisterHandler<T>(Func<object> handler);
+
+		void RegisterHandler(Type key, Func<object> handler);
+
 		T Get<T> (Type key = null);
 
 		object GetInstance (Type key);
@@ -29,6 +33,8 @@ namespace MinMVC
 		bool Has (Type key);
 
 		void Inject<T> (T instance);
+
+		T Create<T>() where T: new();
 
 		void CleanUp ();
 	}

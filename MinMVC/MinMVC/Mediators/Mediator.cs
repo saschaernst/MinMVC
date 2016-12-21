@@ -7,18 +7,24 @@
 		public void Init (IMediated med)
 		{
 			mediated = (T)med;
-			mediated.OnRemove += Remove;
+			mediated.OnStart += OnStart;
+			mediated.OnRemove += OnRemove;
 
 			Register();
 		}
 
 		protected abstract void Register ();
 
-		protected void Remove ()
+		protected virtual void OnStart ()
+		{
+			
+		}
+
+		protected void OnRemove ()
 		{
 			Unregister();
 
-			mediated.OnRemove -= Remove;
+			mediated.OnRemove -= OnRemove;
 			mediated = null;
 		}
 

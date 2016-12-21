@@ -19,7 +19,7 @@ namespace MinMVC
 
 		void ParseFieldAttributes (Type type, InjectionInfo info)
 		{
-			var fields = type.GetFields();
+			var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 
 			for (int i = 0; i < fields.Length; i++) {
 				var field = fields[i];
@@ -29,7 +29,7 @@ namespace MinMVC
 
 		void ParsePropertyAttributes (Type type, InjectionInfo info)
 		{
-			var properties = type.GetProperties();
+			var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 
 			for (int i = 0; i < properties.Length; i++) {
 				var property = properties[i];

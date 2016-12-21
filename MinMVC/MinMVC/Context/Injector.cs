@@ -24,7 +24,7 @@ namespace MinMVC
 			var info = infoMap.Retrieve(key, () => parser.Parse(key));
 
 			if (info.HasInjections()) {
-				InjectInstances(instance, key, info.GetInjections(), BindingFlags.SetProperty | BindingFlags.SetField);
+				InjectInstances(instance, key, info.GetInjections(), BindingFlags.SetProperty | BindingFlags.SetField | BindingFlags.NonPublic | BindingFlags.Public);
 			}
 
 			if (info.HasCalls<PostInjection>()) {

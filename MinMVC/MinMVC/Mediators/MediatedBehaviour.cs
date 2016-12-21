@@ -5,11 +5,17 @@ namespace MinMVC
 {
 	public abstract class MediatedBehaviour : MonoBehaviour, IMediated
 	{
+		public event Action OnStart;
 		public event Action OnRemove;
+
+		protected virtual void Awake()
+		{
+			MediateBehaviour();
+		}
 
 		protected virtual void Start ()
 		{
-			MediateBehaviour();
+			OnStart();
 		}
 
 		protected virtual void OnDestroy ()
@@ -34,12 +40,10 @@ namespace MinMVC
 
 		protected void MediateBehaviour ()
 		{
-			if (transform.parent) {
-				IMediating root = transform.parent.GetComponentInParent<IMediating>();
+			var root = transform.GetComponentInParent<IMediating>();
 
-				if (root != null) {
-					root.Mediate(this);
-				}
+			if (root != null && !root.Equals(this)) {
+				root.Mediate(this);
 			}
 		}
 	}

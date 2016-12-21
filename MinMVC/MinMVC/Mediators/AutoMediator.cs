@@ -7,12 +7,13 @@
 
 		protected override void Register ()
 		{
-			mediated.Mediate = mediators.Mediate;
+			mediated.OnMediate = mediators.Mediate;
+			mediated.ResolveQueue();
 		}
 
 		protected override void Unregister ()
 		{
-			mediated.Mediate = null;
+			mediated.OnMediate = null;
 		}
 	}
 }
