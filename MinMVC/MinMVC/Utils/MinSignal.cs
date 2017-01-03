@@ -3,32 +3,18 @@ using System.Collections.Generic;
 
 namespace MinMVC
 {
-	public interface ISignal
+	public interface IMinSignal
 	{
-		bool Add (object listener);
-
-		bool Remove (object listener);
-
 		void Reset ();
 	}
 
-	public class Signal : ISignal
+	public class MinSignal : IMinSignal
 	{
 		readonly HashSet<Action> listeners = new HashSet<Action>();
-
-		public bool Add (object listener)
-		{
-			return Add((Action)listener);
-		}
 
 		public bool Add (Action listener)
 		{
 			return listeners.Add(listener);
-		}
-
-		public bool Remove (object listener)
-		{
-			return Remove((Action)listener);
 		}
 
 		public bool Remove (Action listener)
@@ -49,23 +35,13 @@ namespace MinMVC
 		}
 	}
 
-	public class Signal<T> : ISignal
+	public class MinSignal<T> : IMinSignal
 	{
 		readonly HashSet<Action<T>> listeners = new HashSet<Action<T>>();
-
-		public bool Add (object listener)
-		{
-			return Add((Action<T>)listener);
-		}
 
 		public bool Add (Action<T> listener)
 		{
 			return listeners.Add(listener);
-		}
-
-		public bool Remove (object listener)
-		{
-			return Remove((Action<T>)listener);
 		}
 
 		public bool Remove (Action<T> listener)
@@ -86,23 +62,13 @@ namespace MinMVC
 		}
 	}
 
-	public class Signal<T, U> : ISignal
+	public class MinSignal<T, U> : IMinSignal
 	{
 		readonly HashSet<Action<T, U>> listeners = new HashSet<Action<T, U>>();
-
-		public bool Add (object listener)
-		{
-			return Add((Action<T, U>)listener);
-		}
 
 		public bool Add (Action<T, U> listener)
 		{
 			return listeners.Add(listener);
-		}
-
-		public bool Remove (object listener)
-		{
-			return Remove((Action<T, U>)listener);
 		}
 
 		public bool Remove (Action<T, U> listener)

@@ -10,10 +10,5 @@
 			mediated.OnMediate = mediators.Mediate;
 			mediated.ResolveQueue();
 		}
-
-		protected override void Unregister ()
-		{
-			mediated.OnMediate = null;
-		}
 	}
 }

@@ -62,10 +62,7 @@
     <Compile Include="MinMVC\Mediators\BaseMediators.cs" />
     <Compile Include="MinMVC\Commands\BaseCommands.cs" />
     <Compile Include="MinMVC\Utils\Exceptions.cs" />
-    <Compile Include="MinMVC\Signals\Signal.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="MinMVC\Signals\" />
+    <Compile Include="MinMVC\Utils\MinSignal.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

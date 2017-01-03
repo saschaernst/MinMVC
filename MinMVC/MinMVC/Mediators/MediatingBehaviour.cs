@@ -9,7 +9,7 @@ namespace MinMVC
 
 		readonly HashSet<IMediated> waitingForMediation = new HashSet<IMediated>();
 
-		public void Mediate(IMediated mediated)
+		public void Mediate (IMediated mediated)
 		{
 			if (OnMediate != null) {
 				OnMediate(mediated);
@@ -26,6 +26,13 @@ namespace MinMVC
 			}
 
 			waitingForMediation.Clear();
+		}
+
+		protected override void Cleanup ()
+		{
+			OnMediate = null;
+
+			base.Cleanup();
 		}
 	}
 }

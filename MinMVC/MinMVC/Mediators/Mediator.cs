@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 
 namespace MinMVC
 {
@@ -6,38 +7,58 @@ namespace MinMVC
 	{
 		protected T mediated;
 
-		readonly IDictionary<ISignal, object> signalMap = new Dictionary<ISignal, object>();
+		readonly IList<Action> signals = new List<Action>();
 
 		public void Init (IMediated med)
 		{
 			mediated = (T)med;
 			mediated.OnStart += OnStart;
+			mediated.OnActivated += OnActivated;
 			mediated.OnRemove += OnRemove;
 
 			Register();
 		}
 
-		protected abstract void Register ();
+		protected virtual void Register ()
+		{
 
-		protected void RegisterSignal (ISignal signal, object listener)
+		}
+		
+		protected void RegisterSignal (MinSignal signal, Action listener)
 		{
 			signal.Add(listener);
-			signalMap.AddNewEntry(signal, listener);
+
+			signals.Add(() => signal.Remove(listener));
+		}
+
+		protected void RegisterSignal<U> (MinSignal<U> signal, Action<U> listener)
+		{
+			signal.Add(listener);
+
+			signals.Add(() => signal.Remove(listener));
+		}
+
+		protected void RegisterSignal<U, V> (MinSignal<U, V> signal, Action<U, V> listener)
+		{
+			signal.Add(listener);
+
+			signals.Add(() => signal.Remove(listener));
 		}
 
 		protected virtual void OnStart ()
 		{
-			
+
+		}
+
+		protected virtual void OnActivated (bool isActive)
+		{
 		}
 
 		protected void OnRemove ()
 		{
 			Unregister();
 
-			ClearSignals();
-
-			mediated.OnRemove -= OnRemove;
-			mediated = null;
+			RemoveSignals();
 		}
 
 		protected virtual void Unregister ()
@@ -45,13 +66,13 @@ namespace MinMVC
 
 		}
 
-		void ClearSignals ()
+		void RemoveSignals ()
 		{
-			foreach (var item in signalMap) {
-				item.Key.Remove(item.Value);
+			foreach (var remove in signals) {
+				remove();
 			}
 
-			signalMap.Clear();
+			signals.Clear();
 		}
 	}
 }
