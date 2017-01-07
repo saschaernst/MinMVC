@@ -1,3 +1,5 @@
+using System;
+
 namespace MinMVC
 {
 	public abstract class BaseCommand : IBaseCommand
@@ -32,11 +34,27 @@ namespace MinMVC
 
 	public abstract class Command<TParam> : BaseCommand, ICommand<TParam>
 	{
-		public abstract void Execute (TParam param);
+		public virtual void Execute (TParam param)
+		{
+			throw new NotImplementedException();
+		}
+
+		public virtual TParam Request ()
+		{
+			throw new NotImplementedException();
+		}
 	}
 
 	public abstract class Command<TParam0, TParam1> : BaseCommand, ICommand<TParam0, TParam1>
 	{
-		public abstract void Execute (TParam0 param0, TParam1 param1);
+		public virtual void Execute (TParam0 param0, TParam1 param1)
+		{
+			throw new NotImplementedException();
+		}
+
+		public TParam0 Request (TParam1 param1)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
