@@ -63,6 +63,7 @@
     <Compile Include="MinMVC\Commands\BaseCommands.cs" />
     <Compile Include="MinMVC\Utils\Exceptions.cs" />
     <Compile Include="MinMVC\Utils\MinSignal.cs" />
+    <Compile Include="MinMVC\Commands\CachingCommand.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

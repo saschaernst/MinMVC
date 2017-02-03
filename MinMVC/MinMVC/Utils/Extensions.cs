@@ -65,5 +65,13 @@ namespace MinMVC
 		{
 			return collection.Count == 0;
 		}
+
+		internal static T Pop<T> (this IList<T> list)
+		{
+			T item = list[0];
+			list.RemoveAt(0);
+
+			return item;
+		}
 	}
 }
