@@ -15,6 +15,7 @@ Makefile.in
 *.pidb
 *.userprefs
 *.usertasks
+*.meta
 config.log
 config.make
 config.status

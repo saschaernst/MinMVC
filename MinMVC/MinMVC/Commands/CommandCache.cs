@@ -84,7 +84,7 @@ namespace MinMVC
 
 		IBaseCommand Create ()
 		{
-			IBaseCommand command = commands.GetCommand<T>();
+			var command = commands.GetCommand<T>();
 			command.cache = this;
 
 			return command;
