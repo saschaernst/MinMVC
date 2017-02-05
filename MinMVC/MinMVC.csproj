@@ -64,6 +64,7 @@
     <Compile Include="MinMVC\Behaviours\MediatedBehaviour.cs" />
     <Compile Include="MinMVC\Behaviours\MediatingBehaviour.cs" />
     <Compile Include="MinMVC\Behaviours\MediatedBehaviourList.cs" />
+    <Compile Include="MinMVC\Utils\TimeSpeedo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="MinMVC\Behaviours\" />
