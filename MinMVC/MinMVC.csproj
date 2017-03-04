@@ -53,7 +53,6 @@
     <Compile Include="MinMVC\Mediators\IMediator.cs" />
     <Compile Include="MinMVC\Mediators\IMediators.cs" />
     <Compile Include="MinMVC\Mediators\IMediating.cs" />
-    <Compile Include="MinMVC\Mediators\MediatedBehaviour.cs" />
     <Compile Include="MinMVC\Mediators\Mediator.cs" />
     <Compile Include="MinMVC\Mediators\Mediators.cs" />
     <Compile Include="MinMVC\Mediators\AutoMediator.cs" />
@@ -64,6 +63,14 @@
     <Compile Include="MinMVC\Mediators\BaseMediators.cs" />
     <Compile Include="MinMVC\Commands\BaseCommands.cs" />
     <Compile Include="MinMVC\Utils\Exceptions.cs" />
+    <Compile Include="MinMVC\Utils\MinSignal.cs" />
+    <Compile Include="MinMVC\Behaviours\MediatedBehaviour.cs" />
+    <Compile Include="MinMVC\Behaviours\MediatingBehaviour.cs" />
+    <Compile Include="MinMVC\Behaviours\MediatedBehaviourList.cs" />
+    <Compile Include="MinMVC\Utils\TimeSpeedo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="MinMVC\Behaviours\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -21,7 +21,7 @@ namespace MinMVC
 			mediatorTypes.Add(mediatorType);
 		}
 
-		public void Mediate<T> (T mediated) where T : IMediated
+		public void Mediate (IMediated mediated)
 		{
 			Type mediatedType = mediated.GetType();
 			bool hasMediators = Create(mediated, mediatedType);

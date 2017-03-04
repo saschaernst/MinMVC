@@ -4,6 +4,6 @@ namespace MinMVC
 	{
 		void Map<TMediated, TMediator>() where TMediated : IMediated where TMediator : IMediator;
 
-		void Mediate<T>(T mediated) where T : IMediated;
+		void Mediate(IMediated mediated);
 	}
 }
