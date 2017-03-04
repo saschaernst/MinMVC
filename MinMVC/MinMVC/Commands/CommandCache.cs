@@ -5,7 +5,7 @@ namespace MinMVC
 	public class CommandCache<T> : ICommandCache where T : class, IBaseCommand, new()
 	{
 		readonly Queue<IBaseCommand> cache = new Queue<IBaseCommand>();
-		readonly IList<IBaseCommand> retained = new List<IBaseCommand>();
+		readonly HashSet<IBaseCommand> retained = new HashSet<IBaseCommand>();
 		readonly ICommands commands;
 
 		public CommandCache (ICommands coms)
@@ -34,24 +34,6 @@ namespace MinMVC
 			Finish(command);
 		}
 
-		public TParam Request<TParam> ()
-		{
-			var command = Get<ICommand<TParam>>();
-			var result = command.Request();
-			Finish(command);
-
-			return result;
-		}
-
-		public TParam0 Request<TParam0, TParam1> (TParam1 param1)
-		{
-			var command = Get<ICommand<TParam0, TParam1>>();
-			var result = command.Request(param1);
-			Finish(command);
-
-			return result;
-		}
-
 		public void Retain (IBaseCommand command)
 		{
 			retained.Add(command);
@@ -67,8 +49,8 @@ namespace MinMVC
 
 		public void CleanUp ()
 		{
-			for (int i = 0; i < retained.Count; i++) {
-				retained[i].Cancel();
+			foreach (var item in retained) {
+				item.Cancel();
 			}
 
 			retained.Clear();
@@ -84,7 +66,7 @@ namespace MinMVC
 
 		IBaseCommand Create ()
 		{
-			IBaseCommand command = commands.GetCommand<T>();
+			var command = commands.GetCommand<T>();
 			command.cache = this;
 
 			return command;

@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>MinMVC</RootNamespace>
     <AssemblyName>MinMVC</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,6 +32,9 @@
     <Reference Include="UnityEngine">
       <HintPath>..\packages\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="MinTools">
+      <HintPath>..\..\MinTools\MinTools\bin\Debug\MinTools.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -55,15 +58,12 @@
     <Compile Include="MinMVC\Mediators\Mediators.cs" />
     <Compile Include="MinMVC\Mediators\AutoMediator.cs" />
     <Compile Include="MinMVC\Mediators\MediatingBehaviour.cs" />
-    <Compile Include="MinMVC\Utils\Extensions.cs" />
     <Compile Include="MinMVC\Context\InfoParser.cs" />
     <Compile Include="MinMVC\Context\Injector.cs" />
     <Compile Include="MinMVC\Context\Attributes.cs" />
     <Compile Include="MinMVC\Mediators\BaseMediators.cs" />
     <Compile Include="MinMVC\Commands\BaseCommands.cs" />
     <Compile Include="MinMVC\Utils\Exceptions.cs" />
-    <Compile Include="MinMVC\Utils\MinSignal.cs" />
-    <Compile Include="MinMVC\Commands\CachingCommand.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

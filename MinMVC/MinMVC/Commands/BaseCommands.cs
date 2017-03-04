@@ -16,12 +16,9 @@ namespace MinMVC
 			caches.Clear();
 		}
 
-		public CommandCache<T> Get<T> (bool init = false) where T : class, IBaseCommand, new()
+		public ICommandCache Get<T> (bool init = false) where T : class, IBaseCommand, new()
 		{
-			Type type = typeof(T);
-			var cache = (CommandCache<T>)caches.Retrieve(type, CreateCache<T>);
-
-			return cache;
+			return caches.Retrieve(typeof(T), CreateCache<T>);
 		}
 
 		ICommandCache CreateCache<T> () where T : class, IBaseCommand, new()
@@ -31,14 +28,12 @@ namespace MinMVC
 
 		public bool Has<T> () where T : class, IBaseCommand, new()
 		{
-			Type type = typeof(T);
-
-			return caches.ContainsKey(type);
+			return caches.ContainsKey(typeof(T));
 		}
 
 		public void Remove<T> () where T : class, IBaseCommand, new()
 		{
-			Type type = typeof(T);
+			var type = typeof(T);
 			ICommandCache cache;
 
 			if (caches.TryGetValue(type, out cache)) {
