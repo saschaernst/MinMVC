@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace MinMVC
@@ -96,7 +96,7 @@ namespace MinMVC
 		public void Register (Type key, Type value, bool preventCaching = false)
 		{
 			if (value != null && value.IsInterface) {
-				throw new CannotRegisterInterfaceAsValueException(value.Name + " is an interface");
+				throw new CannotRegisterInterfaceAsValue(value.Name + " is an interface");
 			}
 
 			if (typeMap.AddNewEntry(key, value)) {
@@ -105,7 +105,7 @@ namespace MinMVC
 				}
 			}
 			else {
-				throw new AlreadyRegisteredException("already registered; " + key);
+				throw new AlreadyRegistered("already registered; " + key);
 			}
 		}
 
@@ -134,7 +134,7 @@ namespace MinMVC
 		void Cache<T> (Type key, T instance)
 		{
 			if (!instanceCache.AddNewEntry(key, instance)) {
-				throw new AlreadyRegisteredException("already cached; " + key);
+				throw new AlreadyRegistered("already cached; " + key);
 			}
 		}
 
@@ -178,7 +178,7 @@ namespace MinMVC
 				else {
 					switch (handleMissingInjections) {
 					case InjectionCheck.Exception:
-						throw new NotRegisteredException("not registered: " + type);
+						throw new NotRegistered("not registered: " + type);
 					case InjectionCheck.Warning:
 						Output("not registered: " + type);
 						break;

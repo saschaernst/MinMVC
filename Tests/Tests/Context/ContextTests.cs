@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 
 namespace MinMVC
 {
@@ -96,7 +96,7 @@ namespace MinMVC
 		[Test]
 		public void ThrowsExceptionWhenTypeNotRegistered ()
 		{
-			Assert.Throws<NotRegisteredException>(() => context.Get<ITestClass>());
+			Assert.Throws<NotRegistered>(() => context.Get<ITestClass>());
 		}
 
 		[Test]
@@ -118,13 +118,13 @@ namespace MinMVC
 		[Test]
 		public void ThrowsExceptionIfInjectionIsNotRegistered ()
 		{
-			Assert.Throws<NotRegisteredException>(() => context.Get<TextClassInjectingInterface>());
+			Assert.Throws<NotRegistered>(() => context.Get<TextClassInjectingInterface>());
 		}
 
 		[Test]
 		public void ThrowsCannotRegisterInterfaceAsValueException ()
 		{
-			Assert.Throws<CannotRegisterInterfaceAsValueException>(() => context.Register(typeof(ITestClass)));
+			Assert.Throws<CannotRegisterInterfaceAsValue>(() => context.Register(typeof(ITestClass)));
 		}
 
 		[Test]

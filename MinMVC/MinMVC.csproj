@@ -56,18 +56,15 @@
     <Compile Include="MinMVC\Mediators\Mediator.cs" />
     <Compile Include="MinMVC\Mediators\Mediators.cs" />
     <Compile Include="MinMVC\Mediators\AutoMediator.cs" />
-    <Compile Include="MinMVC\Mediators\MediatingBehaviour.cs" />
     <Compile Include="MinMVC\Context\InfoParser.cs" />
     <Compile Include="MinMVC\Context\Injector.cs" />
     <Compile Include="MinMVC\Context\Attributes.cs" />
     <Compile Include="MinMVC\Mediators\BaseMediators.cs" />
     <Compile Include="MinMVC\Commands\BaseCommands.cs" />
     <Compile Include="MinMVC\Utils\Exceptions.cs" />
-    <Compile Include="MinMVC\Utils\MinSignal.cs" />
     <Compile Include="MinMVC\Behaviours\MediatedBehaviour.cs" />
     <Compile Include="MinMVC\Behaviours\MediatingBehaviour.cs" />
     <Compile Include="MinMVC\Behaviours\MediatedBehaviourList.cs" />
-    <Compile Include="MinMVC\Utils\TimeSpeedo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="MinMVC\Behaviours\" />

@@ -2,23 +2,23 @@
 
 namespace MinMVC
 {
-	public class NotRegisteredException : Exception
+	public class NotRegistered : Exception
 	{
-		public NotRegisteredException (string message) : base(message)
+		public NotRegistered (string message) : base(message)
 		{
 		}
 	}
 
-	public class AlreadyRegisteredException : Exception
+	public class AlreadyRegistered : Exception
 	{
-		public AlreadyRegisteredException (string message) : base(message)
+		public AlreadyRegistered (string message) : base(message)
 		{
 		}
 	}
 
-	public class CannotRegisterInterfaceAsValueException : Exception
+	public class CannotRegisterInterfaceAsValue : Exception
 	{
-		public CannotRegisterInterfaceAsValueException (string message) : base(message)
+		public CannotRegisterInterfaceAsValue (string message) : base(message)
 		{
 		}
 	}
