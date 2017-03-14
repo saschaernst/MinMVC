@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MinTools;
 
 namespace MinMVC
 {
@@ -120,13 +121,13 @@ namespace MinMVC
 			}
 		}
 
-		public void RegisterHandler<T>(Func<object> handler)
+		public void RegisterHandler<T> (Func<object> handler)
 		{
 			Type key = typeof(T);
 			RegisterHandler(key, handler);
 		}
 
-		public void RegisterHandler(Type key, Func<object> handler)
+		public void RegisterHandler (Type key, Func<object> handler)
 		{
 			handlerMap.AddNewEntry(key, handler);
 		}
@@ -177,11 +178,11 @@ namespace MinMVC
 				}
 				else {
 					switch (handleMissingInjections) {
-					case InjectionCheck.Exception:
-						throw new NotRegistered("not registered: " + type);
-					case InjectionCheck.Warning:
-						Output("not registered: " + type);
-						break;
+						case InjectionCheck.Exception:
+							throw new NotRegistered("not registered: " + type);
+						case InjectionCheck.Warning:
+							Output("not registered: " + type);
+							break;
 					}
 				}
 			}
@@ -203,7 +204,7 @@ namespace MinMVC
 			injector.Inject(instance);
 		}
 
-		public T Create<T>() where T: new()
+		public T Create<T> () where T : new()
 		{
 			var type = typeof(T);
 

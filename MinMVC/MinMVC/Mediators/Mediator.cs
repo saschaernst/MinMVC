@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System;
+using MinTools;
 
 namespace MinMVC
 {
@@ -23,7 +24,7 @@ namespace MinMVC
 		{
 
 		}
-		
+
 		protected void RegisterSignal (MinSignal signal, Action listener)
 		{
 			signal.Add(listener);
