@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using MinTools;
 using UnityEngine;
 
 namespace MinMVC
@@ -17,17 +16,12 @@ namespace MinMVC
 			get {
 				var list = new List<IMediated>();
 
-				var speedo = new Timing();
-				var ticket = speedo.Start();
-
 				foreach (var mediatedObject in mediatedObjects) {
 					var mediatedBehaviours = mediateRecursively
 						? mediatedObject.GetComponentsInChildren<IMediated>(includeInactive)
 						: mediatedObject.GetComponents<IMediated>();
 					list.AddRange(mediatedBehaviours);
 				}
-
-				var result = speedo.Stop(ticket);
 
 				return list;
 			}

@@ -145,6 +145,18 @@ namespace MinMVC
 		}
 
 		[Test]
+		public void InjectInstancesInCircle ()
+		{
+			var instance1 = new CircularClass1();
+			var instance2 = new CircularClass2();
+
+			context.RegisterInstance(instance1);
+			context.RegisterInstance(instance2);
+
+			context.Get<CircularClass1>();
+		}
+
+		[Test]
 		public void CallsPostInjection ()
 		{
 			var instance = context.Get<TestClass>();

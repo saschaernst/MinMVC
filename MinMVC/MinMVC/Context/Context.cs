@@ -167,8 +167,8 @@ namespace MinMVC
 				}
 			}
 			else if (forceInjections.Contains(instance)) {
-				injector.Inject(instance);
 				forceInjections.Remove(instance);
+				injector.Inject(instance);
 			}
 
 			if (instance == null) {
