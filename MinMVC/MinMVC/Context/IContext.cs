@@ -10,13 +10,13 @@ namespace MinMVC
 
 		IContext Parent { set; get; }
 
-		void Register (Type type, bool preventCaching = false);
+		void RegisterType (Type type, bool preventCaching = false);
 
-		void Register (Type key, Type value, bool preventCaching = false);
+		void RegisterType (Type key, Type value, bool preventCaching = false);
 
-		void Register<T> (bool preventCaching = false) where T : class, new();
+		void RegisterClass<T> (bool preventCaching = false) where T : class, new();
 
-		void Register<TInterface, TClass> (bool preventCaching = false) where TInterface : class where TClass : class, new();
+		void RegisterClass<TInterface, TClass> (bool preventCaching = false) where TInterface : class where TClass : class, new();
 
 		void RegisterInstance<T> (T instance, bool preventInjection = false);
 

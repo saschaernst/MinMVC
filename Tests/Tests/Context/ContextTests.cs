@@ -21,7 +21,7 @@ namespace MinMVC
 		[Test]
 		public void RegistersClassByTemplate ()
 		{
-			context.Register<TestClass>();
+			context.RegisterClass<TestClass>();
 
 			Assert.True(context.Has<TestClass>());
 		}
@@ -29,7 +29,7 @@ namespace MinMVC
 		[Test]
 		public void RegistersInterfaceByTemplate ()
 		{
-			context.Register<ITestClass, TestClass>();
+			context.RegisterClass<ITestClass, TestClass>();
 
 			Assert.True(context.Has<ITestClass>());
 			Assert.False(context.Has<TestClass>());
@@ -42,7 +42,7 @@ namespace MinMVC
 		public void RegistersClassByType ()
 		{
 			var type = typeof(TestClass);
-			context.Register(type);
+			context.RegisterType(type);
 
 			Assert.True(context.Has(type));
 		}
@@ -52,7 +52,7 @@ namespace MinMVC
 		{
 			var interfaceType = typeof(ITestClass);
 			var classType = typeof(TestClass);
-			context.Register(interfaceType, classType);
+			context.RegisterType(interfaceType, classType);
 
 			Assert.True(context.Has(interfaceType));
 			Assert.False(context.Has(classType));
@@ -84,7 +84,7 @@ namespace MinMVC
 		[Test]
 		public void PreventsCaching ()
 		{
-			context.Register<TestClass>(true);
+			context.RegisterClass<TestClass>(true);
 			var inst1 = context.Get<TestClass>();
 			var inst2 = context.Get<TestClass>();
 			var inst3 = context.Get<TestClass>();
@@ -124,7 +124,7 @@ namespace MinMVC
 		[Test]
 		public void ThrowsCannotRegisterInterfaceAsValueException ()
 		{
-			Assert.Throws<CannotRegisterInterfaceAsValue>(() => context.Register(typeof(ITestClass)));
+			Assert.Throws<CannotRegisterInterfaceAsValue>(() => context.RegisterType(typeof(ITestClass)));
 		}
 
 		[Test]
@@ -167,7 +167,7 @@ namespace MinMVC
 		[Test]
 		public void CleansupContext ()
 		{
-			context.Register<TestClass>();
+			context.RegisterClass<TestClass>();
 			var instance = context.Get<TestClass>();
 
 			Assert.False(instance.isCleanedUp);

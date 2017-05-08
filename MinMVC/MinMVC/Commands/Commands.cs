@@ -14,7 +14,7 @@
 		public override IBaseCommand GetCommand<T> ()
 		{
 			if (!context.Has<T>()) {
-				context.Register<T>(true);
+				context.RegisterClass<T>(true);
 			}
 
 			return context.Get<T>();

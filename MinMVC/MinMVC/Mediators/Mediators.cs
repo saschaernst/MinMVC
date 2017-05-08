@@ -10,7 +10,7 @@ namespace MinMVC
 		protected override IMediator Get (Type type)
 		{
 			if (!type.IsInterface && !context.Has(type)) {
-				context.Register(type, true);
+				context.RegisterType(type, true);
 			}
 
 			return context.Get<IMediator>(type);

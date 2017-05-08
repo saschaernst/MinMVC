@@ -10,6 +10,7 @@ namespace MinMVC
 		Warning,
 		Exception
 	}
+
 	public class Context : IContext
 	{
 		public event Action OnCleanUp = delegate { };
@@ -76,25 +77,25 @@ namespace MinMVC
 			}
 		}
 
-		public void Register<T> (bool preventCaching = false) where T : class, new()
+		public void RegisterClass<T> (bool preventCaching = false) where T : class, new()
 		{
-			Register<T, T>(preventCaching);
+			RegisterClass<T, T>(preventCaching);
 		}
 
-		public void Register<TInterface, TClass> (bool preventCaching = false) where TInterface : class where TClass : class, new()
+		public void RegisterClass<TInterface, TClass> (bool preventCaching = false) where TInterface : class where TClass : class, new()
 		{
 			Type key = typeof(TInterface);
 			Type value = typeof(TClass);
 
-			Register(key, value, preventCaching);
+			RegisterType(key, value, preventCaching);
 		}
 
-		public void Register (Type type, bool preventCaching = false)
+		public void RegisterType (Type type, bool preventCaching = false)
 		{
-			Register(type, type, preventCaching);
+			RegisterType(type, type, preventCaching);
 		}
 
-		public void Register (Type key, Type value, bool preventCaching = false)
+		public void RegisterType (Type key, Type value, bool preventCaching = false)
 		{
 			if (value != null && value.IsInterface) {
 				throw new CannotRegisterInterfaceAsValue(value.Name + " is an interface");
@@ -113,7 +114,7 @@ namespace MinMVC
 		public void RegisterInstance<T> (T instance, bool preventInjection = false)
 		{
 			Type key = typeof(T);
-			Register(key, null, true);
+			RegisterType(key, null, true);
 			Cache(key, instance);
 
 			if (!preventInjection) {
@@ -173,7 +174,7 @@ namespace MinMVC
 
 			if (instance == null) {
 				if (useAutoResolve && type != null && type.IsClass && !type.IsInterface && !type.IsAbstract) {
-					Register(type);
+					RegisterType(type);
 					instance = GetInstance(type);
 				}
 				else {
