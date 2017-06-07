@@ -1,13 +1,14 @@
-﻿using UnityEngine;
-using System;
+﻿using MinTools;
+using UnityEngine;
 
 namespace MinMVC
 {
 	public abstract class MediatedBehaviour : MonoBehaviour, IMediated
 	{
-		public event Action OnStart;
-		public event Action<bool> OnActivated;
-		public event Action OnRemove;
+		public MinSignal OnStart { get; set; }
+		public MinSignal OnEnabled { get; set; }
+		public MinSignal OnDisabled { get; set; }
+		public MinSignal OnRemove { get; set; }
 
 		protected virtual void Awake ()
 		{
@@ -17,29 +18,29 @@ namespace MinMVC
 		protected virtual void Start ()
 		{
 			if (OnStart != null) {
-				OnStart();
+				OnStart.Call();
 			}
 		}
 
 		protected virtual void OnDestroy ()
 		{
 			if (OnRemove != null) {
-				OnRemove();
+				OnRemove.Call();
 				Cleanup();
 			}
 		}
 
 		protected virtual void OnEnable ()
 		{
-			if (OnActivated != null) {
-				OnActivated(true);
+			if (OnEnabled != null) {
+				OnEnabled.Call();
 			}
 		}
 
 		protected virtual void OnDisable ()
 		{
-			if (OnActivated != null) {
-				OnActivated(false);
+			if (OnDisabled != null) {
+				OnDisabled.Call();
 			}
 		}
 
@@ -61,7 +62,8 @@ namespace MinMVC
 		protected virtual void Cleanup ()
 		{
 			OnStart = null;
-			OnActivated = null;
+			OnEnabled = null;
+			OnDisabled = null;
 			OnRemove = null;
 		}
 

@@ -1,12 +1,13 @@
-using System;
+using MinTools;
 
 namespace MinMVC
 {
 	public interface IMediated
 	{
-		event Action OnStart;
-		event Action<bool> OnActivated;
-		event Action OnRemove;
+		//MinSignal OnStart { get; set; }
+		//MinSignal OnEnabled { get; set; }
+		//MinSignal OnDisabled { get; set; }
+		//MinSignal OnRemove { get; set; }
 
 		void OnMediation ();
 

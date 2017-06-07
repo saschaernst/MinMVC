@@ -1,10 +1,11 @@
 ﻿using System;
+using MinTools;
 
 namespace MinMVC
 {
 	public interface IContext
 	{
-		event Action OnCleanUp;
+		MinSignal OnCleanUp { get;  }
 
 		string Id { get; }
 

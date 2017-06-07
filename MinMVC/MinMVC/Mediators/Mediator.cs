@@ -13,9 +13,6 @@ namespace MinMVC
 		public void Init (IMediated med)
 		{
 			mediated = (T)med;
-			mediated.OnStart += OnStart;
-			mediated.OnActivated += OnActivated;
-			mediated.OnRemove += OnRemove;
 
 			Register();
 		}
@@ -28,37 +25,24 @@ namespace MinMVC
 		protected void RegisterSignal (MinSignal signal, Action listener)
 		{
 			signal.Add(listener);
-
 			signals.Add(() => signal.Remove(listener));
 		}
 
 		protected void RegisterSignal<U> (MinSignal<U> signal, Action<U> listener)
 		{
 			signal.Add(listener);
-
 			signals.Add(() => signal.Remove(listener));
 		}
 
 		protected void RegisterSignal<U, V> (MinSignal<U, V> signal, Action<U, V> listener)
 		{
 			signal.Add(listener);
-
 			signals.Add(() => signal.Remove(listener));
 		}
 
-		protected virtual void OnStart ()
-		{
-
-		}
-
-		protected virtual void OnActivated (bool isActive)
-		{
-		}
-
-		protected void OnRemove ()
+		protected void Cleanup ()
 		{
 			Unregister();
-
 			RemoveSignals();
 		}
 
@@ -69,10 +53,7 @@ namespace MinMVC
 
 		void RemoveSignals ()
 		{
-			foreach (var remove in signals) {
-				remove();
-			}
-
+			signals.Each(s => s());
 			signals.Clear();
 		}
 	}

@@ -13,7 +13,7 @@ namespace MinMVC
 
 	public class Context : IContext
 	{
-		public event Action OnCleanUp = delegate { };
+		public MinSignal OnCleanUp { get; private set; }
 
 		public Action<string> Output { get; set; }
 
@@ -33,13 +33,13 @@ namespace MinMVC
 
 			set {
 				if (HasParent) {
-					parent.OnCleanUp -= CleanUp;
+					parent.OnCleanUp.Remove(CleanUp);
 				}
 
 				parent = value;
 
 				if (HasParent) {
-					parent.OnCleanUp += CleanUp;
+					parent.OnCleanUp.Add(CleanUp);
 				}
 			}
 		}
@@ -54,6 +54,7 @@ namespace MinMVC
 
 		public Context (InjectionCheck checkInjections = InjectionCheck.Exception, bool autoResolve = false, Action<string> output = null)
 		{
+			OnCleanUp = new MinSignal();
 			Output = output ?? Console.WriteLine;
 			handleMissingInjections = checkInjections;
 			useAutoResolve = autoResolve;
@@ -71,10 +72,8 @@ namespace MinMVC
 		{
 			Parent = null;
 
-			if (OnCleanUp != null) {
-				OnCleanUp();
-				OnCleanUp = null;
-			}
+			OnCleanUp.Call();
+			OnCleanUp.Reset();
 		}
 
 		public void RegisterClass<T> (bool preventCaching = false) where T : class, new()

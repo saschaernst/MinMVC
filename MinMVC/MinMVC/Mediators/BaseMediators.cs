@@ -9,7 +9,7 @@ namespace MinMVC
 
 		public void Map<TMediated, TMediator> () where TMediated : IMediated where TMediator : IMediator
 		{
-			Type mediatedType = typeof(TMediated);
+			var mediatedType = typeof(TMediated);
 			IList<Type> mediatorTypes;
 
 			if(!mediatingMap.TryGetValue(mediatedType, out mediatorTypes))
@@ -17,14 +17,14 @@ namespace MinMVC
 				mediatingMap[mediatedType] = mediatorTypes = new List<Type>();
 			}
 
-			Type mediatorType = typeof(TMediator);
+			var mediatorType = typeof(TMediator);
 			mediatorTypes.Add(mediatorType);
 		}
 
 		public void Mediate (IMediated mediated)
 		{
-			Type mediatedType = mediated.GetType();
-			bool hasMediators = Create(mediated, mediatedType);
+			var mediatedType = mediated.GetType();
+			var hasMediators = Create(mediated, mediatedType);
 			var mediatedInterfaces = mediatedType.GetInterfaces();
 
 			for (int i = 0; i < mediatedInterfaces.Length; i++) {

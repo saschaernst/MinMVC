@@ -4,10 +4,8 @@ namespace MinMVC
 {
 	public interface IMediating : IMediated
 	{
-		Action<IMediated> OnMediate { get; set; }
+		void SetMediateHandler (Action<IMediated> mediate);
 
-		void Mediate(IMediated mediated);
-
-		void ResolveQueue();
+		void Mediate (IMediated mediated);
 	}
 }

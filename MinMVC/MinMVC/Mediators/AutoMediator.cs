@@ -7,8 +7,7 @@
 
 		protected override void Register ()
 		{
-			mediated.OnMediate = mediators.Mediate;
-			mediated.ResolveQueue();
+			mediated.SetMediateHandler(mediators.Mediate);
 		}
 	}
 }

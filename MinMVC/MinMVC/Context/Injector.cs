@@ -58,7 +58,8 @@ namespace MinMVC
 		{
 			for (int i = 0; i < methods.Count; i++) {
 				var method = methods[i];
-				context.OnCleanUp += () => method.Invoke(instance, EMPTY_PARAMS);
+				Action action = () => method.Invoke(instance, EMPTY_PARAMS);
+				context.OnCleanUp.Add(action);
 			}
 		}
 

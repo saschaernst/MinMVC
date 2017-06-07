@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
 using NSubstitute;
 
 namespace MinMVC
@@ -26,13 +25,13 @@ namespace MinMVC
 			view.Received(1).Remove();
 		}
 
-		[Test]
-		public void UnregistersOnViewRemoval ()
-		{
-			view.When(v => v.Remove()).Do(v => view.OnRemove += Raise.Event<Action>());
-			mediator.dispatcher.dispatch();
+		//[Test]
+		//public void UnregistersOnViewRemoval ()
+		//{
+		//	view.When(v => v.Remove()).Do(v => view.OnRemove += Raise.Event<Action>());
+		//	mediator.dispatcher.dispatch();
 
-			Assert.Null(mediator.dispatcher);
-		}
+		//	Assert.Null(mediator.dispatcher);
+		//}
 	}
 }
