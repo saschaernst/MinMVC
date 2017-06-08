@@ -14,14 +14,14 @@ namespace MinMVC
 
 		IContext context;
 
-		public Injector (IContext context)
+		public Injector (IContext cont)
 		{
-			this.context = context;
+			context = cont;
 		}
 
 		public void Inject<T> (T instance)
 		{
-			Type key = instance.GetType();
+			var key = instance.GetType();
 			var info = infoMap.Retrieve(key, () => parser.Parse(key));
 
 			if (info.HasInjections()) {
@@ -40,8 +40,8 @@ namespace MinMVC
 		void InjectInstances<T> (T instance, Type type, IDictionary<string, Type> injectionMap, BindingFlags flags)
 		{
 			foreach (var pair in injectionMap) {
-				object injection = context.GetInstance(pair.Value);
-				object[] param = { injection };
+				var injection = context.GetInstance(pair.Value);
+				var param = new object[]{ injection };
 
 				type.InvokeMember(pair.Key, flags, null, instance, param);
 			}
@@ -49,18 +49,12 @@ namespace MinMVC
 
 		void InvokeMethods (object instance, IList<MethodInfo> methods, object[] param = null)
 		{
-			for (int i = 0; i < methods.Count; i++) {
-				methods[i].Invoke(instance, param ?? EMPTY_PARAMS);
-			}
+			methods.Each(m => m.Invoke(instance, param ?? EMPTY_PARAMS));
 		}
 
 		void RegisterCleanups<T> (T instance, IList<MethodInfo> methods)
 		{
-			for (int i = 0; i < methods.Count; i++) {
-				var method = methods[i];
-				Action action = () => method.Invoke(instance, EMPTY_PARAMS);
-				context.OnCleanUp.Add(action);
-			}
+			methods.Each(m => context.OnCleanUp.Add(() => m.Invoke(instance, EMPTY_PARAMS)));
 		}
 
 		public void Cleanup ()
