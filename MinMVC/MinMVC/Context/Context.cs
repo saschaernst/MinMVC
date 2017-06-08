@@ -152,19 +152,7 @@ namespace MinMVC
 			instanceCache.TryGetValue(type, out instance);
 
 			if (instance == null) {
-				Type value;
-				Func<object> handler;
-
-				if (typeMap.TryGetValue(type, out value)) {
-					instance = CreateInstance(type, value);
-				}
-				else if (handlerMap.TryGetValue(type, out handler)) {
-					instance = handler();
-					injector.Inject(instance);
-				}
-				else if (HasParent) {
-					instance = parent.GetInstance(type);
-				}
+				instance = GetUncachedInstance(type);
 			}
 			else if (forceInjections.Contains(instance)) {
 				forceInjections.Remove(instance);
@@ -190,9 +178,29 @@ namespace MinMVC
 			return instance;
 		}
 
-		object CreateInstance (Type key, Type value)
+		object GetUncachedInstance (Type type)
 		{
-			var instance = Activator.CreateInstance(value);
+			object instance = null;
+			Type val;
+			Func<object> handler;
+
+			if (typeMap.TryGetValue(type, out val)) {
+				instance = CreateInstance(type, val);
+			}
+			else if (handlerMap.TryGetValue(type, out handler)) {
+				instance = handler();
+				injector.Inject(instance);
+			}
+			else if (HasParent) {
+				instance = parent.GetInstance(type);
+			}
+
+			return instance;
+		}
+
+		object CreateInstance (Type key, Type val)
+		{
+			var instance = Activator.CreateInstance(val);
 			instanceCache.UpdateEntry(key, instance);
 			injector.Inject(instance);
 

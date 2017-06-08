@@ -1,24 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using MinTools;
 
 namespace MinMVC
 {
 	public abstract class BaseMediators : IMediators
 	{
-		readonly IDictionary<Type, IList<Type>> mediatingMap = new Dictionary<Type, IList<Type>>();
+		readonly IDictionary<Type, List<Type>> mediatingMap = new Dictionary<Type, List<Type>>();
 
 		public void Map<TMediated, TMediator> () where TMediated : IMediated where TMediator : IMediator
 		{
-			var mediatedType = typeof(TMediated);
-			IList<Type> mediatorTypes;
-
-			if(!mediatingMap.TryGetValue(mediatedType, out mediatorTypes))
-			{
-				mediatingMap[mediatedType] = mediatorTypes = new List<Type>();
-			}
-
-			var mediatorType = typeof(TMediator);
-			mediatorTypes.Add(mediatorType);
+			var mediatorTypes = mediatingMap.Retrieve(typeof(TMediated));
+			mediatorTypes.Add(typeof(TMediator));
 		}
 
 		public void Mediate (IMediated mediated)
@@ -26,10 +19,7 @@ namespace MinMVC
 			var mediatedType = mediated.GetType();
 			var hasMediators = Create(mediated, mediatedType);
 			var mediatedInterfaces = mediatedType.GetInterfaces();
-
-			for (int i = 0; i < mediatedInterfaces.Length; i++) {
-				hasMediators |= Create(mediated, mediatedInterfaces[i]);
-			}
+			mediatedInterfaces.Each(i => hasMediators |= Create(mediated,i));
 
 			if (hasMediators) {
 				mediated.OnMediation();
@@ -41,16 +31,10 @@ namespace MinMVC
 
 		bool Create<T> (T mediated, Type mediatedType) where T : IMediated
 		{
-			IList<Type> mediatorTypes;
-			bool hasMediators = mediatingMap.TryGetValue(mediatedType, out mediatorTypes);
+			var mediatorTypes = mediatingMap.Retrieve(mediatedType);
+			mediatorTypes.Each(t => Get(t).Init(mediated));
 
-			if (hasMediators) {
-				for (int i = 0; i < mediatorTypes.Count; i++) {
-					Get(mediatorTypes[i]).Init(mediated);
-				}
-			}
-
-			return hasMediators;
+			return mediatorTypes.Count > 0;
 		}
 
 		protected abstract IMediator Get (Type type);

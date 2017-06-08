@@ -3,45 +3,42 @@ using UnityEngine;
 
 namespace MinMVC
 {
-	public abstract class MediatedBehaviour : MonoBehaviour, IMediated
+	public abstract class MediatedBehaviour : MonoBehaviour, IMediatedBehaviour
 	{
-		public MinSignal OnStart { get; set; }
-		public MinSignal OnEnabled { get; set; }
-		public MinSignal OnDisabled { get; set; }
-		public MinSignal OnRemove { get; set; }
+		public MinSignal OnStart { get; private set; }
+		public MinSignal OnEnabled { get; private set; }
+		public MinSignal OnDisabled { get; private set; }
+		public MinSignal OnRemove { get; private set; }
 
 		protected virtual void Awake ()
 		{
+			OnStart = new MinSignal();
+			OnEnabled = new MinSignal();
+			OnDisabled = new MinSignal();
+			OnRemove = new MinSignal();
+
 			MediateBehaviour();
 		}
 
 		protected virtual void Start ()
 		{
-			if (OnStart != null) {
-				OnStart.Call();
-			}
+			OnStart.Call();
 		}
 
 		protected virtual void OnDestroy ()
 		{
-			if (OnRemove != null) {
-				OnRemove.Call();
-				Cleanup();
-			}
+			OnRemove.Call();
+			Cleanup();
 		}
 
 		protected virtual void OnEnable ()
 		{
-			if (OnEnabled != null) {
-				OnEnabled.Call();
-			}
+			OnEnabled.Call();
 		}
 
 		protected virtual void OnDisable ()
 		{
-			if (OnDisabled != null) {
-				OnDisabled.Call();
-			}
+			OnDisabled.Call();
 		}
 
 		public virtual void OnMediation ()
@@ -61,10 +58,10 @@ namespace MinMVC
 
 		protected virtual void Cleanup ()
 		{
-			OnStart = null;
-			OnEnabled = null;
-			OnDisabled = null;
-			OnRemove = null;
+			OnStart.Reset();
+			OnEnabled.Reset();
+			OnDisabled.Reset();
+			OnRemove.Reset();
 		}
 
 		protected void MediateBehaviour ()

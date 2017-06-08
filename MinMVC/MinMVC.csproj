@@ -64,6 +64,8 @@
     <Compile Include="MinMVC\Behaviours\MediatedBehaviour.cs" />
     <Compile Include="MinMVC\Behaviours\MediatingBehaviour.cs" />
     <Compile Include="MinMVC\Behaviours\MediatedBehaviourList.cs" />
+    <Compile Include="MinMVC\Behaviours\BehaviourMediator.cs" />
+    <Compile Include="MinMVC\Behaviours\IMediatedBehaviour.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="MinMVC\Behaviours\" />
