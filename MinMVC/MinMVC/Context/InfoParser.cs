@@ -20,13 +20,13 @@ namespace MinMVC
 
 		void ParseFieldAttributes (Type type, InjectionInfo info)
 		{
-			var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+			var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 			fields.Each(f => ParseAttributes(f, f.FieldType, info));
 		}
 
 		void ParsePropertyAttributes (Type type, InjectionInfo info)
 		{
-			var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+			var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 			properties.Each(p => ParseAttributes(p, p.PropertyType, info));
 		}
 
